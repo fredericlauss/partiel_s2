@@ -3,6 +3,7 @@ import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import type { AuthUser, Profile, UserRole } from '../lib/supabase'
 import { AuthContext } from './AuthContext'
+import { AuthActions } from '../actions'
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -11,14 +12,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadUserProfile = useCallback(async (authUser: User) => {
     try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authUser.id)
-        .single()
+      const profile = await AuthActions.getUserProfile(authUser.id)
 
-      if (error) {
-        console.error('Erreur lors du chargement du profil:', error)
+      if (!profile) {
+        console.error('Erreur lors du chargement du profil')
         setUser({
           id: authUser.id,
           email: authUser.email!
@@ -98,31 +95,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     phone?: string
   }) => {
     try {
-      const { data, error: authError } = await supabase.auth.signUp({
-        email,
-        password
-      })
-
-      if (authError || !data.user) {
-        return { error: authError }
-      }
-
-      const { error: profileError } = await supabase
-        .rpc('create_user_profile', {
-          user_id: data.user.id,
-          first_name: userData.first_name,
-          last_name: userData.last_name,
-          role: userData.role,
-          company: userData.company || null,
-          phone: userData.phone || null
-        })
-
-      if (profileError) {
-        console.error('Erreur de création de profil:', profileError)
-        return { error: new Error('Erreur lors de la création du profil') }
-      }
-
-      return { error: null }
+      const result = await AuthActions.signUp(email, password, userData)
+      return { error: result.error }
     } catch (error) {
       return { error: error as Error }
     }
@@ -130,12 +104,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
-
-      return { error }
+      const result = await AuthActions.signIn(email, password)
+      return { error: result.error }
     } catch (error) {
       return { error: error as Error }
     }
@@ -143,9 +113,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error('Erreur lors de la déconnexion:', error)
+      const result = await AuthActions.signOut()
+      if (result.error) {
+        console.error('Erreur lors de la déconnexion:', result.error)
       }
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error)
@@ -161,18 +131,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single()
+      const result = await AuthActions.updateProfile(user.id, updates)
 
-      if (!error && data) {
+      if (!result.error && result.data) {
         await loadUserProfile({ id: user.id, email: user.email } as User)
       }
 
-      return { error }
+      return { error: result.error }
     } catch (error) {
       return { error: error as Error }
     }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Conference, ConferenceCreateInput, ConferenceUpdateInput, Room, TimeSlot } from '../lib/supabase'
+import { ConferenceActions } from '../actions'
 
 export const useConferences = () => {
   const [conferences, setConferences] = useState<Conference[]>([])
@@ -12,16 +13,7 @@ export const useConferences = () => {
   const loadConferences = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('conferences')
-        .select(`
-          *,
-          room:rooms!inner(id, name, description),
-          time_slot:time_slots!inner(id, day, start_time, end_time)
-        `)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
+      const data = await ConferenceActions.getConferences()
       setConferences(data || [])
     } catch (err) {
       console.error('Error loading conferences:', err)
@@ -33,12 +25,7 @@ export const useConferences = () => {
 
   const loadRooms = async () => {
     try {
-      const { data, error } = await supabase
-        .from('rooms')
-        .select('*')
-        .order('name')
-
-      if (error) throw error
+      const data = await ConferenceActions.getRooms()
       setRooms(data || [])
     } catch (err) {
       console.error('Error loading rooms:', err)
@@ -47,13 +34,7 @@ export const useConferences = () => {
 
   const loadTimeSlots = async () => {
     try {
-      const { data, error } = await supabase
-        .from('time_slots')
-        .select('*')
-        .order('day', { ascending: true })
-        .order('start_time', { ascending: true })
-
-      if (error) throw error
+      const data = await ConferenceActions.getTimeSlots()
       setTimeSlots(data || [])
     } catch (err) {
       console.error('Error loading time slots:', err)
@@ -63,11 +44,9 @@ export const useConferences = () => {
   const createConference = async (conferenceData: ConferenceCreateInput): Promise<boolean> => {
     try {
       setError(null)
-      const { error } = await supabase
-        .from('conferences')
-        .insert([conferenceData])
-
-      if (error) throw error
+      const result = await ConferenceActions.createConference(conferenceData)
+      
+      if (result.error) throw result.error
       
       await loadConferences() // Refresh the list
       return true
@@ -81,13 +60,9 @@ export const useConferences = () => {
   const updateConference = async (conferenceData: ConferenceUpdateInput): Promise<boolean> => {
     try {
       setError(null)
-      const { id, ...updateData } = conferenceData
-      const { error } = await supabase
-        .from('conferences')
-        .update(updateData)
-        .eq('id', id)
-
-      if (error) throw error
+      const result = await ConferenceActions.updateConference(conferenceData)
+      
+      if (!result) throw new Error('Failed to update conference')
       
       await loadConferences() 
       return true
@@ -101,12 +76,9 @@ export const useConferences = () => {
   const deleteConference = async (conferenceId: string): Promise<boolean> => {
     try {
       setError(null)
-      const { error } = await supabase
-        .from('conferences')
-        .delete()
-        .eq('id', conferenceId)
-
-      if (error) throw error
+      const result = await ConferenceActions.deleteConference(conferenceId)
+      
+      if (!result || !result.id) throw new Error('Failed to delete conference')
       
       await loadConferences()
       return true
@@ -119,20 +91,7 @@ export const useConferences = () => {
 
   const checkAvailability = async (roomId: number, timeSlotId: number, excludeConferenceId?: string): Promise<boolean> => {
     try {
-      let query = supabase
-        .from('conferences')
-        .select('id')
-        .eq('room_id', roomId)
-        .eq('time_slot_id', timeSlotId)
-
-      if (excludeConferenceId) {
-        query = query.neq('id', excludeConferenceId)
-      }
-
-      const { data, error } = await query
-
-      if (error) throw error
-      return (data?.length || 0) === 0
+      return await ConferenceActions.checkConferenceAvailability(roomId, timeSlotId, excludeConferenceId)
     } catch (err) {
       console.error('Error checking availability:', err)
       return false
