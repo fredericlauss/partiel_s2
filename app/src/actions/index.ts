@@ -43,5 +43,6 @@ export {
   getUserProfile,
   updateProfile,
   getCurrentSession,
-  getCurrentUser
+  getCurrentUser,
+  deleteAccount
 } from './auth' 

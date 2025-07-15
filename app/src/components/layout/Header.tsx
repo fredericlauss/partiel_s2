@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { 
   AppBar, 
   Toolbar, 
@@ -6,7 +6,14 @@ import {
   Button, 
   Box, 
   Chip,
-  Avatar
+  Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  TextField,
+  Alert
 } from '@mui/material'
 import { 
   Logout as LogoutIcon,
@@ -16,7 +23,8 @@ import {
   Home as HomeIcon,
   Dashboard as DashboardIcon,
   Login as LoginIcon,
-  EventNote as ProgramIcon
+  EventNote as ProgramIcon,
+  DeleteForever as DeleteAccountIcon
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
@@ -24,12 +32,51 @@ import { usePermissions } from '../../hooks/usePermissions'
 
 const Header: React.FC = () => {
   const navigate = useNavigate()
-  const { user, signOut } = useAuth()
+  const { user, signOut, deleteAccount } = useAuth()
   const { userRole, isLoggedIn, isOrganizer } = usePermissions()
+  
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [confirmationText, setConfirmationText] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const handleSignOut = async () => {
     await signOut()
     navigate('/auth', { replace: true })
+  }
+
+  const handleDeleteAccount = () => {
+    setDeleteDialogOpen(true)
+    setConfirmationText('')
+    setDeleteError(null)
+  }
+
+  const confirmDeleteAccount = async () => {
+    if (confirmationText !== 'SUPPRIMER') {
+      setDeleteError('Veuillez taper "SUPPRIMER" pour confirmer')
+      return
+    }
+
+    setDeleting(true)
+    setDeleteError(null)
+
+    try {
+      const result = await deleteAccount()
+      
+      if (result.error) {
+        setDeleteError(result.error.message)
+        setDeleting(false)
+      } else {
+        setDeleteDialogOpen(false)
+        setTimeout(() => {
+          navigate('/auth', { replace: true })
+        }, 200)
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression du compte:', error)
+      setDeleteError('Erreur lors de la suppression du compte')
+      setDeleting(false)
+    }
   }
 
   const getRoleIcon = () => {
@@ -152,6 +199,23 @@ const Header: React.FC = () => {
 
               <Button
                 color="inherit"
+                onClick={handleDeleteAccount}
+                startIcon={<DeleteAccountIcon />}
+                variant="outlined"
+                size="small"
+                sx={{ 
+                  borderColor: 'rgba(255,255,255,0.5)',
+                  '&:hover': {
+                    borderColor: 'white',
+                    backgroundColor: 'rgba(255,255,255,0.1)'
+                  }
+                }}
+              >
+                Supprimer mon compte
+              </Button>
+
+              <Button
+                color="inherit"
                 onClick={handleSignOut}
                 startIcon={<LogoutIcon />}
                 variant="outlined"
@@ -187,6 +251,62 @@ const Header: React.FC = () => {
           </Button>
         )}
       </Toolbar>
+      
+      <Dialog 
+        open={deleteDialogOpen} 
+        onClose={() => !deleting && setDeleteDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle color="error">
+          ⚠️ Supprimer définitivement votre compte
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            <strong>Cette action est irréversible !</strong>
+          </DialogContentText>
+          <DialogContentText sx={{ mb: 3 }}>
+            Votre compte et toutes vos données seront définitivement supprimées :
+            • Votre profil utilisateur
+            • Vos inscriptions aux conférences
+            • Vos conférences sponsorisées (si organisateur)
+          </DialogContentText>
+          
+          {deleteError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {deleteError}
+            </Alert>
+          )}
+          
+          <DialogContentText sx={{ mb: 1 }}>
+            Pour confirmer, tapez <strong>SUPPRIMER</strong> dans le champ ci-dessous :
+          </DialogContentText>
+          <TextField
+            fullWidth
+            value={confirmationText}
+            onChange={(e) => setConfirmationText(e.target.value)}
+            placeholder="SUPPRIMER"
+            disabled={deleting}
+            error={deleteError === 'Veuillez taper "SUPPRIMER" pour confirmer'}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setDeleteDialogOpen(false)}
+            disabled={deleting}
+          >
+            Annuler
+          </Button>
+          <Button 
+            onClick={confirmDeleteAccount}
+            color="error"
+            variant="contained"
+            disabled={deleting || confirmationText !== 'SUPPRIMER'}
+          >
+            {deleting ? 'Suppression...' : 'Supprimer définitivement'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </AppBar>
   )
 }

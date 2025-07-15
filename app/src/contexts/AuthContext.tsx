@@ -143,6 +143,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  const deleteAccount = async () => {
+    try {
+      const result = await AuthActions.deleteAccount()
+      
+      if (!result.error) {
+        // Reset l'état local après suppression réussie
+        setUser(null)
+        setSession(null)
+      }
+      
+      return { error: result.error }
+    } catch (error) {
+      return { error: error as Error }
+    }
+  }
+
   const value = {
     user,
     session,
@@ -150,7 +166,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signIn,
     signOut,
-    updateProfile
+    updateProfile,
+    deleteAccount
   }
 
   return (

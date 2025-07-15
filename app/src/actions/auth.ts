@@ -1,7 +1,6 @@
 import { supabase } from '../lib/supabase'
 import type { UserRole, Profile } from '../lib/supabase'
 
-// Récupérer le profil utilisateur
 export async function getUserProfile(userId: string) {
   const { data, error } = await supabase
     .from('profiles')
@@ -13,7 +12,6 @@ export async function getUserProfile(userId: string) {
   return data
 }
 
-// Récupérer tous les profils (pour admin)
 export async function getAllProfiles() {
   const { data, error } = await supabase
     .from('profiles')
@@ -24,7 +22,6 @@ export async function getAllProfiles() {
   return data || []
 }
 
-// Récupérer les profils par rôle
 export async function getProfilesByRole(role: UserRole) {
   const { data, error } = await supabase
     .from('profiles')
@@ -36,7 +33,6 @@ export async function getProfilesByRole(role: UserRole) {
   return data || []
 }
 
-// S'inscrire (créer un compte)
 export async function signUp(
   email: string, 
   password: string, 
@@ -75,7 +71,6 @@ export async function signUp(
   return { error: null }
 }
 
-// Se connecter
 export async function signIn(email: string, password: string) {
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -85,13 +80,11 @@ export async function signIn(email: string, password: string) {
   return { error }
 }
 
-// Se déconnecter
 export async function signOut() {
   const { error } = await supabase.auth.signOut()
   return { error }
 }
 
-// Mettre à jour le profil utilisateur
 export async function updateProfile(userId: string, updates: Partial<Profile>) {
   const { data, error } = await supabase
     .from('profiles')
@@ -104,7 +97,6 @@ export async function updateProfile(userId: string, updates: Partial<Profile>) {
   return data
 }
 
-// Changer le mot de passe
 export async function changePassword(newPassword: string) {
   const { error } = await supabase.auth.updateUser({
     password: newPassword
@@ -113,25 +105,38 @@ export async function changePassword(newPassword: string) {
   return { error }
 }
 
-// Réinitialiser le mot de passe
 export async function resetPassword(email: string) {
   const { error } = await supabase.auth.resetPasswordForEmail(email)
   return { error }
 }
 
-// Récupérer la session actuelle
 export async function getCurrentSession() {
   const { data, error } = await supabase.auth.getSession()
   return { session: data.session, error }
 }
 
-// Récupérer l'utilisateur actuel
 export async function getCurrentUser() {
   const { data, error } = await supabase.auth.getUser()
   return { user: data.user, error }
 }
 
-// Vérifier si un email existe déjà
+export async function deleteAccount() {
+  try {
+    const { error } = await supabase.rpc('delete_user')
+
+    if (error) {
+      throw new Error(`Erreur lors de la suppression: ${error.message}`)
+    }
+
+    await supabase.auth.signOut()
+
+    return { error: null }
+  } catch (error) {
+    console.error('Erreur lors de la suppression du compte:', error)
+    return { error: error instanceof Error ? error : new Error('Erreur inconnue') }
+  }
+}
+
 export async function checkEmailExists(email: string) {
   const { data, error } = await supabase
     .from('profiles')
@@ -146,7 +151,6 @@ export async function checkEmailExists(email: string) {
   return !!data // true si l'email existe
 }
 
-// Mettre à jour l'email
 export async function updateEmail(newEmail: string) {
   const { error } = await supabase.auth.updateUser({
     email: newEmail
@@ -155,9 +159,7 @@ export async function updateEmail(newEmail: string) {
   return { error }
 }
 
-// Supprimer un compte utilisateur (admin seulement)
 export async function deleteUser(userId: string) {
-  // D'abord supprimer le profil
   const { error: profileError } = await supabase
     .from('profiles')
     .delete()
@@ -165,12 +167,9 @@ export async function deleteUser(userId: string) {
 
   if (profileError) throw profileError
 
-  // Note: La suppression du compte auth doit être faite côté serveur
-  // avec les permissions admin de Supabase
   return { success: true }
 }
 
-// Changer le rôle d'un utilisateur (admin seulement)
 export async function changeUserRole(userId: string, newRole: UserRole) {
   const { data, error } = await supabase
     .from('profiles')

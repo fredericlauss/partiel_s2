@@ -1,0 +1,10 @@
+CREATE OR REPLACE FUNCTION delete_user()
+RETURNS void
+LANGUAGE SQL 
+SECURITY DEFINER
+AS $$
+  DELETE FROM auth.users WHERE id = auth.uid();
+$$;
+
+REVOKE ALL ON FUNCTION delete_user FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION delete_user TO authenticated; 

@@ -16,6 +16,7 @@ export interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: Error | null }>
+  deleteAccount: () => Promise<{ error: Error | null }>
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined) 
