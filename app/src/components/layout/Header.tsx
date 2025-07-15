@@ -70,7 +70,6 @@ const Header: React.FC = () => {
         
         {isLoggedIn ? (
           <>
-            {/* Boutons de navigation pour utilisateurs connectés */}
             <Box display="flex" alignItems="center" gap={1} sx={{ mr: 2 }}>
               <Button
                 color="inherit"
@@ -102,7 +101,6 @@ const Header: React.FC = () => {
             </Box>
             
             <Box display="flex" alignItems="center" gap={2}>
-              {/* Informations utilisateur */}
               <Box display="flex" alignItems="center" gap={1}>
                 <Avatar sx={{ width: 32, height: 32, bgcolor: getRoleColor() + '.main' }}>
                   {user?.profile?.first_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
@@ -127,7 +125,6 @@ const Header: React.FC = () => {
                 </Box>
               </Box>
 
-              {/* Bouton déconnexion */}
               <Button
                 color="inherit"
                 onClick={signOut}
@@ -147,7 +144,6 @@ const Header: React.FC = () => {
             </Box>
           </>
         ) : (
-          /* Bouton de connexion pour utilisateurs non connectés */
           <Button
             color="inherit"
             onClick={() => navigate('/auth')}

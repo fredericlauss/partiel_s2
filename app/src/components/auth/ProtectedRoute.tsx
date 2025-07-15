@@ -20,13 +20,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isLoggedIn, userRole } = usePermissions()
   const { signOut } = useAuth()
 
-  // Si l'utilisateur n'est pas connecté et que l'auth est requise
   if (requireAuth && !isLoggedIn) {
-    // Redirection automatique vers la page d'authentification
     return <Navigate to="/auth" replace />
   }
 
-  // Si un rôle spécifique est requis et que l'utilisateur n'a pas ce rôle
   if (requiredRole && userRole !== requiredRole) {
     return fallback || (
       <Box textAlign="center" py={4}>

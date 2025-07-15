@@ -84,7 +84,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     phone?: string
   }) => {
     try {
-      // 1. Créer l'utilisateur sans metadata
       const { data, error: authError } = await supabase.auth.signUp({
         email,
         password
