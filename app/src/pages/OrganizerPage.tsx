@@ -274,7 +274,7 @@ const OrganizerPage: React.FC = () => {
       </TabPanel>
 
       <TabPanel value={activeTab} index={1}>
-        <Box display="flex" justifyContent="between" alignItems="center" sx={{ mb: 3 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Typography variant="h5">
             Gestion des conférences
           </Typography>
