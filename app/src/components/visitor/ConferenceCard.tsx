@@ -6,14 +6,12 @@ import {
   Box,
   Chip,
   Button,
-  Avatar,
-  Badge
+  Avatar
 } from '@mui/material'
 import {
   AccessTime as TimeIcon,
   Room as RoomIcon,
   Person as PersonIcon,
-  EventAvailable as RegisteredIcon,
   Add as RegisterIcon,
   Remove as UnregisterIcon
 } from '@mui/icons-material'
@@ -59,49 +57,35 @@ export const ConferenceCard: React.FC<ConferenceCardProps> = ({
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        position: 'relative',
         transition: 'all 0.2s ease-in-out',
-        border: isRegistered ? '2px solid' : '1px solid',
-        borderColor: isRegistered ? 'success.main' : 'divider',
-        backgroundColor: isRegistered ? 'success.light' : 'background.paper',
+        position: 'relative',
         '&:hover': {
           boxShadow: 4,
           transform: 'translateY(-2px)'
         }
       }}
     >
-      {/* Registration status badge */}
       {isRegistered && (
         <Box
           sx={{
             position: 'absolute',
-            top: 8,
-            right: 8,
+            top: 12,
+            right: 12,
             zIndex: 1
           }}
         >
-          <Badge
-            badgeContent={<RegisteredIcon sx={{ fontSize: 16 }} />}
+          <Chip
+            label="✓ Inscrit"
+            size="small"
             color="success"
-            sx={{
-              '& .MuiBadge-badge': {
-                backgroundColor: 'success.main',
-                color: 'white',
-                borderRadius: '50%',
-                width: 28,
-                height: 28
-              }
-            }}
+            variant="filled"
           />
         </Box>
       )}
 
       <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Title */}
-        <Typography variant="h6" gutterBottom sx={{ 
-          fontWeight: isRegistered ? 600 : 500,
-          color: isRegistered ? 'success.dark' : 'text.primary'
-        }}>
+        <Typography variant="h6" gutterBottom>
           {conference.title}
         </Typography>
 
@@ -123,7 +107,7 @@ export const ConferenceCard: React.FC<ConferenceCardProps> = ({
             icon={<TimeIcon />}
             label={formatTimeSlot()}
             size="small"
-            color={isRegistered ? 'success' : 'primary'}
+            color="primary"
             variant="outlined"
           />
           <Chip
@@ -158,7 +142,6 @@ export const ConferenceCard: React.FC<ConferenceCardProps> = ({
           </Box>
         </Box>
 
-        {/* Action button */}
         <Box mt="auto">
           <Button
             fullWidth
@@ -184,18 +167,6 @@ export const ConferenceCard: React.FC<ConferenceCardProps> = ({
             }
           </Button>
         </Box>
-
-        {/* Registration status text */}
-        {isRegistered && (
-          <Typography 
-            variant="caption" 
-            color="success.dark" 
-            align="center" 
-            sx={{ mt: 1, fontWeight: 600 }}
-          >
-            ✓ Vous êtes inscrit
-          </Typography>
-        )}
       </CardContent>
     </Card>
   )
