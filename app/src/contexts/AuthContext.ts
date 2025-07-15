@@ -1,6 +1,6 @@
 import { createContext } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import type { AuthUser, Profile } from '../lib/supabase'
+import type { AuthUser, Profile, UserRole } from '../lib/supabase'
 
 export interface AuthContextType {
   user: AuthUser | null
@@ -9,7 +9,7 @@ export interface AuthContextType {
   signUp: (email: string, password: string, userData: {
     first_name: string
     last_name: string
-    role: string
+    role: UserRole
     company?: string
     phone?: string
   }) => Promise<{ error: Error | null }>

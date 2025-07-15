@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
-import type { AuthUser, Profile } from '../lib/supabase'
+import type { AuthUser, Profile, UserRole } from '../lib/supabase'
 import { AuthContext } from './AuthContext'
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, userData: {
     first_name: string
     last_name: string
-    role: string
+    role: UserRole
     company?: string
     phone?: string
   }) => {
