@@ -15,7 +15,8 @@ import {
   Tab,
   CircularProgress,
   LinearProgress,
-  Chip
+  Chip,
+  Snackbar
 } from '@mui/material'
 import { 
   Event as EventIcon,
@@ -73,6 +74,16 @@ const OrganizerPage: React.FC = () => {
   const [conferenceToDelete, setConferenceToDelete] = useState<string | null>(null)
   const [operationLoading, setOperationLoading] = useState(false)
 
+  const [notification, setNotification] = useState<{
+    open: boolean
+    message: string
+    severity: 'success' | 'error'
+  }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  })
+
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
     setShowForm(false)
@@ -83,9 +94,11 @@ const OrganizerPage: React.FC = () => {
     setOperationLoading(true)
     try {
       let success = false
+      let isUpdate = false
       
       if ('id' in data) {
         success = await updateConference(data)
+        isUpdate = true
       } else {
         success = await createConference(data)
       }
@@ -93,8 +106,19 @@ const OrganizerPage: React.FC = () => {
       if (success) {
         setShowForm(false)
         setEditingConference(null)
-        // Refresh statistics after successful operation
         refreshStats()
+        
+        setNotification({
+          open: true,
+          message: isUpdate ? 'Conférence modifiée avec succès !' : 'Conférence créée avec succès !',
+          severity: 'success'
+        })
+      } else {
+        setNotification({
+          open: true,
+          message: isUpdate ? 'Erreur lors de la modification de la conférence' : 'Erreur lors de la création de la conférence',
+          severity: 'error'
+        })
       }
       
       return success
@@ -121,8 +145,20 @@ const OrganizerPage: React.FC = () => {
     try {
       const success = await deleteConference(conferenceToDelete)
       if (success) {
-        // Refresh statistics after successful deletion
+        
         refreshStats()
+        
+        setNotification({
+          open: true,
+          message: 'Conférence supprimée avec succès !',
+          severity: 'success'
+        })
+      } else {
+        setNotification({
+          open: true,
+          message: 'Erreur lors de la suppression de la conférence',
+          severity: 'error'
+        })
       }
       setDeleteDialogOpen(false)
       setConferenceToDelete(null)
@@ -450,6 +486,20 @@ const OrganizerPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={4000}
+        onClose={() => setNotification({ ...notification, open: false })}
+      >
+        <Alert
+          onClose={() => setNotification({ ...notification, open: false })}
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }

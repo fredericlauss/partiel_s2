@@ -1,12 +1,13 @@
 import { supabase } from '../lib/supabase'
+import type { Room, Conference } from '../lib/supabase'
 
 interface DashboardStats {
   totalConferences: number
   totalRegistrations: number
   averageAttendanceRate: number
   conferencesPerDay: { day: number; count: number }[]
-  roomUtilization: { room: unknown; conferenceCount: number; utilizationRate: number }[]
-  popularConferences: { conference: unknown; registrationCount: number }[]
+  roomUtilization: { room: Room; conferenceCount: number; utilizationRate: number }[]
+  popularConferences: { conference: Conference; registrationCount: number }[]
   totalRooms: number
   totalTimeSlots: number
   overallUtilizationRate: number
