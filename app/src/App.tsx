@@ -7,6 +7,7 @@ import Header from './components/layout/Header'
 import AuthPage from './pages/AuthPage'
 import OrganizerPage from './pages/OrganizerPage'
 import VisitorPage from './pages/VisitorPage'
+import PersonalSchedule from './components/visitor/PersonalSchedule'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 
 
@@ -37,15 +38,27 @@ function AppContent() {
       <Header />
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Routes>
-          {/* Route d'authentification */}
+        <Route 
+            path="/" 
+            element={
+              user ? <VisitorPage /> : <Navigate to="/auth" replace />
+            } 
+          />
+
           <Route 
             path="/auth" 
             element={
               user ? <Navigate to="/" replace /> : <AuthPage />
             } 
           />
+
+          <Route 
+            path="/my-program" 
+            element={
+                <PersonalSchedule />
+            } 
+          />
           
-          {/* Routes protégées par rôle */}
           <Route 
             path="/organizer" 
             element={
@@ -55,40 +68,6 @@ function AppContent() {
             } 
           />
           
-          <Route 
-            path="/visitor" 
-            element={
-              <ProtectedRoute requiredRole="visitor">
-                <VisitorPage />
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/sponsor" 
-            element={
-              <ProtectedRoute requiredRole="sponsor">
-                <Box textAlign="center" py={8}>
-                  <Typography variant="h4" gutterBottom>
-                    🏢 Espace Sponsor
-                  </Typography>
-                  <Typography color="text.secondary">
-                    Interface sponsor en cours de développement...
-                  </Typography>
-                </Box>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Page principale - tout le monde va ici */}
-          <Route 
-            path="/" 
-            element={
-              user ? <VisitorPage /> : <Navigate to="/auth" replace />
-            } 
-          />
-          
-          {/* Route catch-all */}
           <Route 
             path="*" 
             element={

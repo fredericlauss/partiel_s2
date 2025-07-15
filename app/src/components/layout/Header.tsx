@@ -15,7 +15,8 @@ import {
   Business as BusinessIcon,
   Home as HomeIcon,
   Dashboard as DashboardIcon,
-  Login as LoginIcon
+  Login as LoginIcon,
+  EventNote as ProgramIcon
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
@@ -79,6 +80,25 @@ const Header: React.FC = () => {
               >
                 Accueil
               </Button>
+              
+
+                <Button
+                  color="inherit"
+                  onClick={() => navigate('/my-program')}
+                  startIcon={<ProgramIcon />}
+                  size="small"
+                  variant="outlined"
+                  sx={{ 
+                    borderColor: 'rgba(255,255,255,0.5)',
+                    '&:hover': {
+                      borderColor: 'white',
+                      backgroundColor: 'rgba(255,255,255,0.1)'
+                    }
+                  }}
+                >
+                  Mon Programme
+                </Button>
+
               
               {isOrganizer && (
                 <Button

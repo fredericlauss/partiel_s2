@@ -36,8 +36,6 @@ export interface AuthUser {
   profile?: Profile
 }
 
-// Conference management types
-
 export interface Room {
   id: number
   name: string
@@ -47,9 +45,9 @@ export interface Room {
 
 export interface TimeSlot {
   id: number
-  day: number // 1, 2, or 3
-  start_time: string // Format: "HH:MM"
-  end_time: string // Format: "HH:MM"
+  day: number
+  start_time: string
+  end_time: string
   created_at: string
 }
 
@@ -65,8 +63,6 @@ export interface Conference {
   sponsored_by_user_id?: string
   created_at: string
   updated_at: string
-  
-  // Joined data (available when using joins)
   room?: Room
   time_slot?: TimeSlot
   sponsor_profile?: Profile
@@ -77,13 +73,21 @@ export interface Registration {
   user_id: string
   conference_id: string
   created_at: string
-  
-  // Joined data
   conference?: Conference
   user_profile?: Profile
 }
 
-// Utility types for forms and API responses
+export interface ConferenceWithRegistration extends Conference {
+  is_registered?: boolean      
+  registration_id?: string    
+}
+
+export interface RegistrationConflict {
+  existing_conference: Conference
+  new_conference: Conference
+  time_slot: TimeSlot
+}
+
 export interface ConferenceCreateInput {
   title: string
   description: string
@@ -99,7 +103,6 @@ export interface ConferenceUpdateInput extends Partial<ConferenceCreateInput> {
   id: string
 }
 
-// Conference filtering and search
 export interface ConferenceFilters {
   day?: number
   room_id?: number
@@ -107,7 +110,6 @@ export interface ConferenceFilters {
   search_term?: string
 }
 
-// Dashboard statistics
 export interface ConferenceStats {
   total_conferences: number
   total_registrations: number
