@@ -1,5 +1,6 @@
 import React from 'react'
 import { Box, Typography, Button } from '@mui/material'
+import { Navigate } from 'react-router-dom'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useAuth } from '../../hooks/useAuth'
 
@@ -21,16 +22,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Si l'utilisateur n'est pas connecté et que l'auth est requise
   if (requireAuth && !isLoggedIn) {
-    return fallback || (
-      <Box textAlign="center" py={4}>
-        <Typography variant="h5" gutterBottom>
-          🔒 Accès restreint
-        </Typography>
-        <Typography color="text.secondary">
-          Vous devez être connecté pour accéder à cette page.
-        </Typography>
-      </Box>
-    )
+    // Redirection automatique vers la page d'authentification
+    return <Navigate to="/auth" replace />
   }
 
   // Si un rôle spécifique est requis et que l'utilisateur n'a pas ce rôle
