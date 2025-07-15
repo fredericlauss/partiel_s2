@@ -1,6 +1,6 @@
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { CssBaseline, Container, Typography, CircularProgress, Box } from '@mui/material'
-import { AuthProvider } from './contexts/AuthContext'
+import { AuthProvider } from './contexts'
 import { useAuth } from './hooks/useAuth'
 import AuthPage from './pages/AuthPage'
 import Dashboard from './pages/Dashboard'
