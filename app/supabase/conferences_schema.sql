@@ -58,9 +58,21 @@ ALTER TABLE conferences ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view conferences" ON conferences
     FOR SELECT USING (true);
 
--- Only organizers can create/update/delete conferences
-CREATE POLICY "Only organizers can manage conferences" ON conferences
-    FOR ALL USING (
+-- Only organizers can create conferences
+CREATE POLICY "Only organizers can create conferences" ON conferences
+    FOR INSERT WITH CHECK (
+        (SELECT role FROM profiles WHERE id = auth.uid()) = 'organizer'
+    );
+
+-- Only organizers can update conferences
+CREATE POLICY "Only organizers can update conferences" ON conferences
+    FOR UPDATE USING (
+        (SELECT role FROM profiles WHERE id = auth.uid()) = 'organizer'
+    );
+
+-- Only organizers can delete conferences
+CREATE POLICY "Only organizers can delete conferences" ON conferences
+    FOR DELETE USING (
         (SELECT role FROM profiles WHERE id = auth.uid()) = 'organizer'
     );
 

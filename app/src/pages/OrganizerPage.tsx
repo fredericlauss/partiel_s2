@@ -53,7 +53,8 @@ const OrganizerPage: React.FC = () => {
     createConference,
     updateConference,
     deleteConference,
-    checkAvailability
+    checkAvailability,
+    getTimeSlotAvailability
   } = useConferences()
 
   const [activeTab, setActiveTab] = useState(0)
@@ -71,25 +72,20 @@ const OrganizerPage: React.FC = () => {
     todayConferences: conferences.filter(c => c.time_slot?.day === 1).length
   }
 
-  // Handle tab change
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
-    // Close form when switching tabs
     setShowForm(false)
     setEditingConference(null)
   }
 
-  // Handle form submission (create or update)
   const handleFormSubmit = async (data: ConferenceCreateInput | ConferenceUpdateInput): Promise<boolean> => {
     setOperationLoading(true)
     try {
       let success = false
       
       if ('id' in data) {
-        // Update existing conference
         success = await updateConference(data)
       } else {
-        // Create new conference
         success = await createConference(data)
       }
 
@@ -104,20 +100,17 @@ const OrganizerPage: React.FC = () => {
     }
   }
 
-  // Handle edit conference
   const handleEditConference = (conference: Conference) => {
     setEditingConference(conference)
     setShowForm(true)
-    setActiveTab(1) // Switch to management tab
+    setActiveTab(1)
   }
 
-  // Handle delete conference
   const handleDeleteConference = (conferenceId: string) => {
     setConferenceToDelete(conferenceId)
     setDeleteDialogOpen(true)
   }
 
-  // Confirm deletion
   const confirmDelete = async () => {
     if (!conferenceToDelete) return
 
@@ -131,7 +124,6 @@ const OrganizerPage: React.FC = () => {
     }
   }
 
-  // Cancel form
   const handleCancelForm = () => {
     setShowForm(false)
     setEditingConference(null)
@@ -139,24 +131,21 @@ const OrganizerPage: React.FC = () => {
 
   return (
     <Box>
-      {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" gutterBottom>
-          👑 Dashboard Organisateur
+          Dashboard Organisateur
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
           Bienvenue, {user?.profile?.first_name} {user?.profile?.last_name}
         </Typography>
       </Box>
 
-      {/* Global error display */}
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
 
-      {/* Navigation tabs */}
       <Card sx={{ mb: 3 }}>
         <Tabs 
           value={activeTab} 
@@ -165,21 +154,19 @@ const OrganizerPage: React.FC = () => {
           sx={{ borderBottom: 1, borderColor: 'divider' }}
         >
           <Tab 
-            label="📊 Vue d'ensemble" 
+            label="Vue d'ensemble" 
             icon={<AnalyticsIcon />}
             iconPosition="start"
           />
           <Tab 
-            label="🎯 Gestion des conférences" 
+            label="Gestion des conférences" 
             icon={<ListIcon />}
             iconPosition="start"
           />
         </Tabs>
       </Card>
 
-      {/* Dashboard Overview Tab */}
       <TabPanel value={activeTab} index={0}>
-        {/* Statistics */}
         <Box 
           display="grid" 
           gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr 1fr 1fr" }}
@@ -251,11 +238,10 @@ const OrganizerPage: React.FC = () => {
           </Card>
         </Box>
 
-        {/* Quick actions */}
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
-              🚀 Actions rapides
+              Actions rapides
             </Typography>
             <Divider sx={{ my: 2 }} />
             <Box 
@@ -287,11 +273,10 @@ const OrganizerPage: React.FC = () => {
         </Card>
       </TabPanel>
 
-      {/* Conference Management Tab */}
       <TabPanel value={activeTab} index={1}>
         <Box display="flex" justifyContent="between" alignItems="center" sx={{ mb: 3 }}>
           <Typography variant="h5">
-            🎯 Gestion des conférences
+            Gestion des conférences
           </Typography>
           {!showForm && (
             <Button
@@ -316,6 +301,7 @@ const OrganizerPage: React.FC = () => {
             onSubmit={handleFormSubmit}
             onCancel={handleCancelForm}
             checkAvailability={checkAvailability}
+            getTimeSlotAvailability={getTimeSlotAvailability}
           />
         ) : (
           <ConferenceList

@@ -12,7 +12,7 @@ import {
   Button,
   Alert
 } from '@mui/material'
-import { Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material'
+import { Save as SaveIcon, Cancel as CancelIcon, CheckCircle as AvailableIcon, Cancel as OccupiedIcon } from '@mui/icons-material'
 import type { Conference, ConferenceCreateInput, ConferenceUpdateInput, Room, TimeSlot } from '../../lib/supabase'
 
 interface ConferenceFormProps {
@@ -23,6 +23,7 @@ interface ConferenceFormProps {
   onSubmit: (data: ConferenceCreateInput | ConferenceUpdateInput) => Promise<boolean>
   onCancel: () => void
   checkAvailability: (roomId: number, timeSlotId: number, excludeConferenceId?: string) => Promise<boolean>
+  getTimeSlotAvailability: (roomId: number, excludeConferenceId?: string) => Promise<Record<number, boolean>>
 }
 
 export const ConferenceForm: React.FC<ConferenceFormProps> = ({
@@ -32,7 +33,8 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
   loading,
   onSubmit,
   onCancel,
-  checkAvailability
+  checkAvailability,
+  getTimeSlotAvailability
 }) => {
   const [formData, setFormData] = useState({
     title: '',
@@ -46,10 +48,11 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [availabilityError, setAvailabilityError] = useState<string | null>(null)
+  const [timeSlotAvailability, setTimeSlotAvailability] = useState<Record<number, boolean>>({})
+  const [checkingAvailability, setCheckingAvailability] = useState(false)
 
   const isEditMode = !!conference
 
-  // Initialize form with conference data if editing
   useEffect(() => {
     if (conference) {
       setFormData({
@@ -64,18 +67,59 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
     }
   }, [conference])
 
-  // Format day display for time slots
+  // Check availability when room changes
+  useEffect(() => {
+    const checkRoomAvailability = async () => {
+      if (formData.room_id) {
+        setCheckingAvailability(true)
+        try {
+          const availability = await getTimeSlotAvailability(
+            formData.room_id, 
+            isEditMode ? conference?.id : undefined
+          )
+          setTimeSlotAvailability(availability)
+        } catch (error) {
+          console.error('Error checking room availability:', error)
+        } finally {
+          setCheckingAvailability(false)
+        }
+      } else {
+        setTimeSlotAvailability({})
+      }
+    }
+
+    checkRoomAvailability()
+  }, [formData.room_id, getTimeSlotAvailability, isEditMode, conference?.id])
+
   const getDayLabel = (day: number) => {
     const dayLabels = { 1: 'Jour 1', 2: 'Jour 2', 3: 'Jour 3' }
     return dayLabels[day as keyof typeof dayLabels] || `Jour ${day}`
   }
 
-  // Format time slot display
+  // Display with availability
   const formatTimeSlot = (timeSlot: TimeSlot) => {
-    return `${getDayLabel(timeSlot.day)} - ${timeSlot.start_time} à ${timeSlot.end_time}`
+    const baseFormat = `${getDayLabel(timeSlot.day)} - ${timeSlot.start_time} à ${timeSlot.end_time}`
+    
+    if (!formData.room_id) return baseFormat
+    
+    const isAvailable = timeSlotAvailability[timeSlot.id]
+    if (isAvailable === undefined) return baseFormat
+    
+    return isAvailable ? `${baseFormat} Disponible` : `${baseFormat} Occupé`
   }
 
-  // Handle input changes
+  const isTimeSlotAvailable = (timeSlotId: number) => {
+    if (!formData.room_id) return true
+    return timeSlotAvailability[timeSlotId] !== false
+  }
+
+  const getTimeSlotColor = (timeSlotId: number) => {
+    if (!formData.room_id) return 'inherit'
+    const isAvailable = timeSlotAvailability[timeSlotId]
+    if (isAvailable === undefined) return 'inherit' 
+    return isAvailable ? 'success.main' : 'error.main'
+  }
+
   const handleChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     
@@ -87,6 +131,11 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
     // Clear availability error when room or time slot changes
     if (field === 'room_id' || field === 'time_slot_id') {
       setAvailabilityError(null)
+    }
+
+    // Reset time slot when room changes
+    if (field === 'room_id') {
+      setFormData(prev => ({ ...prev, time_slot_id: 0 }))
     }
   }
 
@@ -104,13 +153,11 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
     return Object.keys(newErrors).length === 0
   }
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!validateForm()) return
 
-    // Check room/time slot availability
     const isAvailable = await checkAvailability(
       formData.room_id, 
       formData.time_slot_id, 
@@ -132,7 +179,7 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
 
       const success = await onSubmit(submitData)
       if (success) {
-        onCancel() // Close form on success
+        onCancel()
       }
     } finally {
       setSubmitting(false)
@@ -143,7 +190,7 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
     <Card>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          {isEditMode ? '✏️ Modifier la conférence' : '➕ Nouvelle conférence'}
+          {isEditMode ? 'Modifier la conférence' : 'Nouvelle conférence'}
         </Typography>
 
         {availabilityError && (
@@ -154,7 +201,6 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
 
         <Box component="form" onSubmit={handleSubmit}>
           <Box display="flex" flexDirection="column" gap={3}>
-            {/* Conference details */}
             <TextField
               fullWidth
               label="Titre de la conférence"
@@ -177,7 +223,6 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
               disabled={submitting}
             />
 
-            {/* Speaker details */}
             <Box display="flex" gap={2} flexDirection={{ xs: 'column', md: 'row' }}>
               <TextField
                 fullWidth
@@ -208,7 +253,6 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
               disabled={submitting}
             />
 
-            {/* Scheduling */}
             <Box display="flex" gap={2} flexDirection={{ xs: 'column', md: 'row' }}>
               <FormControl fullWidth error={!!errors.room_id}>
                 <InputLabel>Salle</InputLabel>
@@ -231,21 +275,50 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
               </FormControl>
 
               <FormControl fullWidth error={!!errors.time_slot_id}>
-                <InputLabel>Créneau horaire</InputLabel>
+                <InputLabel>
+                  {checkingAvailability ? 'Vérification disponibilité...' : 'Créneau horaire'}
+                </InputLabel>
                 <Select
                   value={formData.time_slot_id || ''}
                   onChange={(e) => handleChange('time_slot_id', Number(e.target.value))}
-                  disabled={submitting || loading}
+                  disabled={submitting || loading || checkingAvailability || !formData.room_id}
                 >
                   {timeSlots.map((slot) => (
-                    <MenuItem key={slot.id} value={slot.id}>
-                      {formatTimeSlot(slot)}
+                    <MenuItem 
+                      key={slot.id} 
+                      value={slot.id}
+                      disabled={!isTimeSlotAvailable(slot.id)}
+                      sx={{ 
+                        color: getTimeSlotColor(slot.id),
+                        '&.Mui-disabled': {
+                          color: 'error.main',
+                          opacity: 0.6
+                        }
+                      }}
+                    >
+                      <Box display="flex" alignItems="center" gap={1}>
+                        {formData.room_id && timeSlotAvailability[slot.id] !== undefined && (
+                          timeSlotAvailability[slot.id] ? 
+                            <AvailableIcon color="success" fontSize="small" /> :
+                            <OccupiedIcon color="error" fontSize="small" />
+                        )}
+                        {formatTimeSlot(slot)}
+                      </Box>
                     </MenuItem>
                   ))}
                 </Select>
                 {errors.time_slot_id && (
                   <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
                     {errors.time_slot_id}
+                  </Typography>
+                )}
+                {!formData.room_id ? (
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, ml: 1.5 }}>
+                    Sélectionnez d'abord une salle pour voir la disponibilité des créneaux
+                  </Typography>
+                ) : (
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, ml: 1.5 }}>
+                    Disponible | Occupé
                   </Typography>
                 )}
               </FormControl>
@@ -265,7 +338,7 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
                 type="submit"
                 variant="contained"
                 startIcon={<SaveIcon />}
-                disabled={submitting || loading}
+                disabled={submitting || loading || checkingAvailability}
               >
                 {submitting ? 'Enregistrement...' : isEditMode ? 'Modifier' : 'Créer'}
               </Button>

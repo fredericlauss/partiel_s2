@@ -9,7 +9,6 @@ export const useConferences = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Load all conferences with joined room and time slot data
   const loadConferences = async () => {
     try {
       setLoading(true)
@@ -32,7 +31,6 @@ export const useConferences = () => {
     }
   }
 
-  // Load rooms for form dropdowns
   const loadRooms = async () => {
     try {
       const { data, error } = await supabase
@@ -47,7 +45,6 @@ export const useConferences = () => {
     }
   }
 
-  // Load time slots for form dropdowns
   const loadTimeSlots = async () => {
     try {
       const { data, error } = await supabase
@@ -63,7 +60,6 @@ export const useConferences = () => {
     }
   }
 
-  // Create a new conference
   const createConference = async (conferenceData: ConferenceCreateInput): Promise<boolean> => {
     try {
       setError(null)
@@ -82,7 +78,6 @@ export const useConferences = () => {
     }
   }
 
-  // Update an existing conference
   const updateConference = async (conferenceData: ConferenceUpdateInput): Promise<boolean> => {
     try {
       setError(null)
@@ -94,7 +89,7 @@ export const useConferences = () => {
 
       if (error) throw error
       
-      await loadConferences() // Refresh the list
+      await loadConferences() 
       return true
     } catch (err) {
       console.error('Error updating conference:', err)
@@ -103,7 +98,6 @@ export const useConferences = () => {
     }
   }
 
-  // Delete a conference
   const deleteConference = async (conferenceId: string): Promise<boolean> => {
     try {
       setError(null)
@@ -114,7 +108,7 @@ export const useConferences = () => {
 
       if (error) throw error
       
-      await loadConferences() // Refresh the list
+      await loadConferences()
       return true
     } catch (err) {
       console.error('Error deleting conference:', err)
@@ -123,7 +117,6 @@ export const useConferences = () => {
     }
   }
 
-  // Check if a room/time slot combination is available
   const checkAvailability = async (roomId: number, timeSlotId: number, excludeConferenceId?: string): Promise<boolean> => {
     try {
       let query = supabase
@@ -146,7 +139,40 @@ export const useConferences = () => {
     }
   }
 
-  // Initialize data on mount
+  const getTimeSlotAvailability = async (roomId: number, excludeConferenceId?: string): Promise<Record<number, boolean>> => {
+    try {
+      if (!roomId) return {}
+
+      let query = supabase
+        .from('conferences')
+        .select('time_slot_id')
+        .eq('room_id', roomId)
+
+      if (excludeConferenceId) {
+        query = query.neq('id', excludeConferenceId)
+      }
+
+      const { data, error } = await query
+
+      if (error) throw error
+
+      const occupiedSlots = (data || []).reduce((acc, conf) => {
+        acc[conf.time_slot_id] = true
+        return acc
+      }, {} as Record<number, boolean>)
+
+      const availability: Record<number, boolean> = {}
+      timeSlots.forEach(slot => {
+        availability[slot.id] = !occupiedSlots[slot.id] // Available if not occupied
+      })
+
+      return availability
+    } catch (err) {
+      console.error('Error getting time slot availability:', err)
+      return {}
+    }
+  }
+
   useEffect(() => {
     loadConferences()
     loadRooms()
@@ -163,6 +189,7 @@ export const useConferences = () => {
     updateConference,
     deleteConference,
     checkAvailability,
+    getTimeSlotAvailability,
     refreshConferences: loadConferences
   }
 } 
