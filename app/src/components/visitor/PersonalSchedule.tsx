@@ -15,7 +15,6 @@ import {
   Avatar
 } from '@mui/material'
 import {
-  EventNote as ScheduleIcon,
   AccessTime as TimeIcon,
   Room as RoomIcon,
   Person as PersonIcon,
@@ -290,10 +289,8 @@ export const PersonalSchedule: React.FC = () => {
         
         {totalRegistrations > 0 && (
           <Chip
-            icon={<ScheduleIcon />}
             label={`${totalRegistrations} inscription${totalRegistrations !== 1 ? 's' : ''}`}
             color="primary"
-            sx={{ mt: 2 }}
           />
         )}
       </Box>
