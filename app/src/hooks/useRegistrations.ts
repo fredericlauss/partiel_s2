@@ -105,7 +105,6 @@ export const useRegistrations = () => {
     setError(null)
 
     try {
-      // Check for time conflicts first
       const conflict = await checkTimeConflict(conferenceId)
       
       if (conflict) {
@@ -113,7 +112,6 @@ export const useRegistrations = () => {
         return { success: false, conflict }
       }
 
-      // No conflict, proceed with registration
       const { error } = await supabase
         .from('registrations')
         .insert([{
@@ -183,36 +181,46 @@ export const useRegistrations = () => {
     setError(null)
 
     try {
-      // Use transaction to ensure atomicity
-      const { error } = await supabase.rpc('replace_user_registration', {
-        p_user_id: user.id,
-        p_old_conference_id: oldConferenceId,
-        p_new_conference_id: newConferenceId
-      })
+      const { error: deleteError } = await supabase
+        .from('registrations')
+        .delete()
+        .match({
+          user_id: user.id,
+          conference_id: oldConferenceId
+        })
 
-      if (error) {
-        setError('Erreur lors du remplacement de l\'inscription')
-        return false
+      if (deleteError) {
+        throw new Error(`Erreur lors de la désinscription: ${deleteError.message}`)
+      }
+
+      const { error: insertError } = await supabase
+        .from('registrations')
+        .insert([{
+          user_id: user.id,
+          conference_id: newConferenceId
+        }])
+
+      if (insertError) {
+        // If insertion fails, try to restore the old registration
+        await supabase
+          .from('registrations')
+          .insert([{
+            user_id: user.id,
+            conference_id: oldConferenceId
+          }])
+        
+        throw new Error(`Erreur lors de la nouvelle inscription: ${insertError.message}`)
       }
 
       return true
     } catch (err) {
       console.error('Error replacing registration:', err)
-      
-      // Fallback: manual transaction
-      try {
-        await unregisterFromConference(oldConferenceId)
-        const result = await registerForConference(newConferenceId)
-        return result.success
-      } catch (fallbackErr) {
-        console.error('Fallback replacement failed:', fallbackErr)
-        setError('Erreur lors du remplacement de l\'inscription')
-        return false
-      }
+      setError(err instanceof Error ? err.message : 'Erreur lors du remplacement de l\'inscription')
+      return false
     } finally {
       setLoading(false)
     }
-  }, [user?.id, unregisterFromConference, registerForConference])
+  }, [user?.id])
 
   const getConferencesWithRegistrationStatus = useCallback(async (): Promise<ConferenceWithRegistration[]> => {
     try {
