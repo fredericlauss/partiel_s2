@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Box, Paper, Tabs, Tab, Alert } from '@mui/material'
+import { useAuth } from '../hooks/useAuth'
 import LoginForm from '../components/auth/LoginForm'
 import RegisterForm from '../components/auth/RegisterForm'
 
@@ -22,6 +24,15 @@ function TabPanel(props: TabPanelProps) {
 export default function AuthPage() {
   const [tabValue, setTabValue] = useState(0)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const navigate = useNavigate()
+  const { user } = useAuth()
+
+  // Redirection automatique après connexion
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true })
+    }
+  }, [user, navigate])
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue)
