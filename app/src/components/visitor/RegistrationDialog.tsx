@@ -106,7 +106,7 @@ export const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
           </Box>
 
           <Typography variant="body2" color="text.secondary">
-            <strong>Conférencier :</strong> {conference.speaker_name}
+            <strong>Conférencier :</strong> {conference.speaker?.name || 'Non défini'}
           </Typography>
         </Box>
       </DialogContent>

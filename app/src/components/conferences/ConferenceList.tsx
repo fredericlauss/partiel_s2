@@ -116,20 +116,20 @@ export const ConferenceList: React.FC<ConferenceListProps> = ({
                 {/* Speaker info */}
                 <Box display="flex" alignItems="center" gap={1}>
                   <Avatar
-                    src={conference.speaker_photo}
+                    src={conference.speaker?.photo}
                     sx={{ width: 32, height: 32 }}
                   >
                     <PersonIcon />
                   </Avatar>
                   <Box>
                     <Typography variant="body2" fontWeight="medium">
-                      {conference.speaker_name}
+                      {conference.speaker?.name || 'Conférencier non défini'}
                     </Typography>
-                    {conference.speaker_bio && (
+                    {conference.speaker?.bio && (
                       <Typography variant="caption" color="text.secondary">
-                        {conference.speaker_bio.length > 80 
-                          ? `${conference.speaker_bio.substring(0, 80)}...`
-                          : conference.speaker_bio
+                        {conference.speaker.bio.length > 80 
+                          ? `${conference.speaker.bio.substring(0, 80)}...`
+                          : conference.speaker.bio
                         }
                       </Typography>
                     )}

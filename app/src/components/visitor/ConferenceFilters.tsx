@@ -53,7 +53,7 @@ export const ConferenceFilters: React.FC<ConferenceFiltersProps> = ({
   // Get unique speakers from conferences
   const speakers = React.useMemo(() => {
     const uniqueSpeakers = Array.from(
-      new Set(conferences.map(conf => conf.speaker_name))
+      new Set(conferences.map(conf => conf.speaker?.name).filter(Boolean))
     ).sort()
     return uniqueSpeakers
   }, [conferences])

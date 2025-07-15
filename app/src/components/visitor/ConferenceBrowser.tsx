@@ -98,7 +98,7 @@ export const ConferenceBrowser: React.FC = () => {
       }
 
       // Speaker filter
-      if (selectedSpeaker && conference.speaker_name !== selectedSpeaker) {
+      if (selectedSpeaker && conference.speaker?.name !== selectedSpeaker) {
         return false
       }
 
@@ -107,7 +107,7 @@ export const ConferenceBrowser: React.FC = () => {
         const searchLower = searchTerm.toLowerCase()
         const titleMatch = conference.title.toLowerCase().includes(searchLower)
         const descriptionMatch = conference.description.toLowerCase().includes(searchLower)
-        const speakerMatch = conference.speaker_name.toLowerCase().includes(searchLower)
+        const speakerMatch = conference.speaker?.name?.toLowerCase().includes(searchLower) || false
         
         if (!titleMatch && !descriptionMatch && !speakerMatch) {
           return false

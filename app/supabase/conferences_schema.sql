@@ -1,6 +1,16 @@
 -- Conference management schema
 -- Creates tables for rooms, time slots, conferences and user registrations
 
+-- Speakers table - Conference speakers/presenters
+CREATE TABLE IF NOT EXISTS speakers (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    photo TEXT, -- URL to speaker photo
+    bio TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Rooms table - Conference rooms available for the event
 CREATE TABLE IF NOT EXISTS rooms (
     id SERIAL PRIMARY KEY,
@@ -24,9 +34,7 @@ CREATE TABLE IF NOT EXISTS conferences (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
-    speaker_name VARCHAR(255) NOT NULL,
-    speaker_photo TEXT, -- URL to speaker photo
-    speaker_bio TEXT,
+    speaker_id UUID REFERENCES speakers(id) ON DELETE CASCADE NOT NULL,
     room_id INTEGER REFERENCES rooms(id) ON DELETE CASCADE NOT NULL,
     time_slot_id INTEGER REFERENCES time_slots(id) ON DELETE CASCADE NOT NULL,
     sponsored_by_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL, -- For sponsors
@@ -45,6 +53,8 @@ CREATE TABLE IF NOT EXISTS registrations (
 );
 
 -- Indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_speakers_name ON speakers(name);
+CREATE INDEX IF NOT EXISTS idx_conferences_speaker ON conferences(speaker_id);
 CREATE INDEX IF NOT EXISTS idx_conferences_room_timeslot ON conferences(room_id, time_slot_id);
 CREATE INDEX IF NOT EXISTS idx_conferences_sponsored_by ON conferences(sponsored_by_user_id);
 CREATE INDEX IF NOT EXISTS idx_registrations_user ON registrations(user_id);
@@ -83,6 +93,31 @@ CREATE POLICY "Sponsors can update their sponsored conferences" ON conferences
         AND (SELECT role FROM profiles WHERE id = auth.uid()) = 'sponsor'
     );
 
+-- RLS policies for speakers
+ALTER TABLE speakers ENABLE ROW LEVEL SECURITY;
+
+-- Everyone can read speakers
+CREATE POLICY "Anyone can view speakers" ON speakers
+    FOR SELECT USING (true);
+
+-- Only organizers can create speakers
+CREATE POLICY "Only organizers can create speakers" ON speakers
+    FOR INSERT WITH CHECK (
+        (SELECT role FROM profiles WHERE id = auth.uid()) = 'organizer'
+    );
+
+-- Only organizers can update speakers
+CREATE POLICY "Only organizers can update speakers" ON speakers
+    FOR UPDATE USING (
+        (SELECT role FROM profiles WHERE id = auth.uid()) = 'organizer'
+    );
+
+-- Only organizers can delete speakers
+CREATE POLICY "Only organizers can delete speakers" ON speakers
+    FOR DELETE USING (
+        (SELECT role FROM profiles WHERE id = auth.uid()) = 'organizer'
+    );
+
 -- RLS policies for registrations
 ALTER TABLE registrations ENABLE ROW LEVEL SECURITY;
 
@@ -112,4 +147,17 @@ CREATE POLICY "Only organizers can manage rooms" ON rooms
     FOR ALL USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'organizer');
 
 CREATE POLICY "Only organizers can manage time slots" ON time_slots
-    FOR ALL USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'organizer'); 
+    FOR ALL USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'organizer');
+
+-- Triggers for updated_at
+DROP TRIGGER IF EXISTS update_speakers_updated_at ON speakers;
+CREATE TRIGGER update_speakers_updated_at 
+    BEFORE UPDATE ON speakers 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_conferences_updated_at ON conferences;
+CREATE TRIGGER update_conferences_updated_at 
+    BEFORE UPDATE ON conferences 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column(); 

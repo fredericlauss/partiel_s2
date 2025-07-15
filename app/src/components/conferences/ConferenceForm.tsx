@@ -13,12 +13,13 @@ import {
   Alert
 } from '@mui/material'
 import { Save as SaveIcon, Cancel as CancelIcon, CheckCircle as AvailableIcon, Cancel as OccupiedIcon } from '@mui/icons-material'
-import type { Conference, ConferenceCreateInput, ConferenceUpdateInput, Room, TimeSlot } from '../../lib/supabase'
+import type { Conference, ConferenceCreateInput, ConferenceUpdateInput, Room, TimeSlot, Speaker } from '../../lib/supabase'
 
 interface ConferenceFormProps {
   conference?: Conference // If provided, form is in edit mode
   rooms: Room[]
   timeSlots: TimeSlot[]
+  speakers: Speaker[]
   loading: boolean
   onSubmit: (data: ConferenceCreateInput | ConferenceUpdateInput) => Promise<boolean>
   onCancel: () => void
@@ -30,6 +31,7 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
   conference,
   rooms,
   timeSlots,
+  speakers,
   loading,
   onSubmit,
   onCancel,
@@ -39,9 +41,7 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    speaker_name: '',
-    speaker_photo: '',
-    speaker_bio: '',
+    speaker_id: '',
     room_id: 0,
     time_slot_id: 0
   })
@@ -58,9 +58,7 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
       setFormData({
         title: conference.title,
         description: conference.description,
-        speaker_name: conference.speaker_name,
-        speaker_photo: conference.speaker_photo || '',
-        speaker_bio: conference.speaker_bio || '',
+        speaker_id: conference.speaker_id,
         room_id: conference.room_id,
         time_slot_id: conference.time_slot_id
       })
@@ -145,7 +143,7 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
 
     if (!formData.title.trim()) newErrors.title = 'Le titre est requis'
     if (!formData.description.trim()) newErrors.description = 'La description est requise'
-    if (!formData.speaker_name.trim()) newErrors.speaker_name = 'Le nom du conférencier est requis'
+    if (!formData.speaker_id) newErrors.speaker_id = 'Veuillez sélectionner un conférencier'
     if (!formData.room_id) newErrors.room_id = 'Veuillez sélectionner une salle'
     if (!formData.time_slot_id) newErrors.time_slot_id = 'Veuillez sélectionner un créneau'
 
@@ -223,35 +221,25 @@ export const ConferenceForm: React.FC<ConferenceFormProps> = ({
               disabled={submitting}
             />
 
-            <Box display="flex" gap={2} flexDirection={{ xs: 'column', md: 'row' }}>
-              <TextField
-                fullWidth
-                label="Nom du conférencier"
-                value={formData.speaker_name}
-                onChange={(e) => handleChange('speaker_name', e.target.value)}
-                error={!!errors.speaker_name}
-                helperText={errors.speaker_name}
-                disabled={submitting}
-              />
-              <TextField
-                fullWidth
-                label="Photo du conférencier (URL)"
-                value={formData.speaker_photo}
-                onChange={(e) => handleChange('speaker_photo', e.target.value)}
-                placeholder="https://example.com/photo.jpg"
-                disabled={submitting}
-              />
-            </Box>
-
-            <TextField
-              fullWidth
-              multiline
-              rows={2}
-              label="Biographie du conférencier"
-              value={formData.speaker_bio}
-              onChange={(e) => handleChange('speaker_bio', e.target.value)}
-              disabled={submitting}
-            />
+            <FormControl fullWidth error={!!errors.speaker_id}>
+              <InputLabel>Conférencier</InputLabel>
+              <Select
+                value={formData.speaker_id || ''}
+                onChange={(e) => handleChange('speaker_id', e.target.value)}
+                disabled={submitting || loading}
+              >
+                {speakers.map((speaker) => (
+                  <MenuItem key={speaker.id} value={speaker.id}>
+                    {speaker.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.speaker_id && (
+                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                  {errors.speaker_id}
+                </Typography>
+              )}
+            </FormControl>
 
             <Box display="flex" gap={2} flexDirection={{ xs: 'column', md: 'row' }}>
               <FormControl fullWidth error={!!errors.room_id}>

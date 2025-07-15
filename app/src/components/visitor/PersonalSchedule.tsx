@@ -198,13 +198,13 @@ export const PersonalSchedule: React.FC = () => {
               {/* Speaker */}
               <Box display="flex" alignItems="center" gap={1} sx={{ mb: 2 }}>
                 <Avatar
-                  src={conference.speaker_photo}
+                  src={conference.speaker?.photo}
                   sx={{ width: 24, height: 24 }}
                 >
                   <PersonIcon fontSize="small" />
                 </Avatar>
                 <Typography variant="body2" color="text.secondary">
-                  <strong>Conférencier :</strong> {conference.speaker_name}
+                  <strong>Conférencier :</strong> {conference.speaker?.name || 'Non défini'}
                 </Typography>
               </Box>
 

@@ -36,6 +36,15 @@ export interface AuthUser {
   profile?: Profile
 }
 
+export interface Speaker {
+  id: string
+  name: string
+  photo?: string
+  bio?: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Room {
   id: number
   name: string
@@ -55,14 +64,13 @@ export interface Conference {
   id: string
   title: string
   description: string
-  speaker_name: string
-  speaker_photo?: string
-  speaker_bio?: string
+  speaker_id: string
   room_id: number
   time_slot_id: number
   sponsored_by_user_id?: string
   created_at: string
   updated_at: string
+  speaker?: Speaker
   room?: Room
   time_slot?: TimeSlot
   sponsor_profile?: Profile
@@ -91,9 +99,7 @@ export interface RegistrationConflict {
 export interface ConferenceCreateInput {
   title: string
   description: string
-  speaker_name: string
-  speaker_photo?: string
-  speaker_bio?: string
+  speaker_id: string
   room_id: number
   time_slot_id: number
   sponsored_by_user_id?: string
@@ -106,7 +112,7 @@ export interface ConferenceUpdateInput extends Partial<ConferenceCreateInput> {
 export interface ConferenceFilters {
   day?: number
   room_id?: number
-  speaker_name?: string
+  speaker_id?: string
   search_term?: string
 }
 

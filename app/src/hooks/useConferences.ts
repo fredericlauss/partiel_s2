@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Conference, ConferenceCreateInput, ConferenceUpdateInput, Room, TimeSlot } from '../lib/supabase'
+import type { Conference, ConferenceCreateInput, ConferenceUpdateInput, Room, TimeSlot, Speaker } from '../lib/supabase'
 import { ConferenceActions } from '../actions'
 
 export const useConferences = () => {
   const [conferences, setConferences] = useState<Conference[]>([])
   const [rooms, setRooms] = useState<Room[]>([])
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
+  const [speakers, setSpeakers] = useState<Speaker[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -38,6 +39,15 @@ export const useConferences = () => {
       setTimeSlots(data || [])
     } catch (err) {
       console.error('Error loading time slots:', err)
+    }
+  }
+
+  const loadSpeakers = async () => {
+    try {
+      const data = await ConferenceActions.getSpeakers()
+      setSpeakers(data || [])
+    } catch (err) {
+      console.error('Error loading speakers:', err)
     }
   }
 
@@ -136,12 +146,14 @@ export const useConferences = () => {
     loadConferences()
     loadRooms()
     loadTimeSlots()
+    loadSpeakers()
   }, [])
 
   return {
     conferences,
     rooms,
     timeSlots,
+    speakers,
     loading,
     error,
     createConference,

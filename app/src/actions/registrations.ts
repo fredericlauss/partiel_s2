@@ -1,7 +1,6 @@
 import { supabase } from '../lib/supabase'
 import type { ConferenceWithRegistration, RegistrationConflict } from '../lib/supabase'
 
-// Récupérer les inscriptions d'un utilisateur
 export async function getUserRegistrations(userId: string) {
   const { data, error } = await supabase
     .from('registrations')
@@ -9,6 +8,7 @@ export async function getUserRegistrations(userId: string) {
       *,
       conference:conferences(
         *,
+        speaker:speakers(*),
         room:rooms(*),
         time_slot:time_slots(*)
       )
@@ -19,13 +19,12 @@ export async function getUserRegistrations(userId: string) {
   return data || []
 }
 
-// Récupérer les conférences avec statut d'inscription pour un utilisateur
 export async function getConferencesWithRegistrationStatus(userId?: string): Promise<ConferenceWithRegistration[]> {
-  // Récupérer toutes les conférences
   const { data: conferences, error: conferencesError } = await supabase
     .from('conferences')
     .select(`
       *,
+      speaker:speakers(*),
       room:rooms(*),
       time_slot:time_slots(*)
     `)
@@ -35,7 +34,6 @@ export async function getConferencesWithRegistrationStatus(userId?: string): Pro
 
   if (!userId || !conferences) return conferences || []
 
-  // Récupérer les inscriptions de l'utilisateur
   const { data: registrations, error: registrationsError } = await supabase
     .from('registrations')
     .select('id, conference_id')
@@ -43,12 +41,10 @@ export async function getConferencesWithRegistrationStatus(userId?: string): Pro
 
   if (registrationsError) throw registrationsError
 
-  // Mapper les inscriptions pour un accès rapide
   const registrationMap = new Map(
     registrations?.map(reg => [reg.conference_id, reg.id]) || []
   )
 
-  // Ajouter le statut d'inscription aux conférences
   return conferences.map(conference => ({
     ...conference,
     is_registered: registrationMap.has(conference.id),
@@ -56,13 +52,12 @@ export async function getConferencesWithRegistrationStatus(userId?: string): Pro
   }))
 }
 
-// Vérifier les conflits horaires pour une inscription
 export async function checkTimeConflict(userId: string, conferenceId: string): Promise<RegistrationConflict | null> {
-  // Récupérer la conférence cible
   const { data: targetConference, error: targetError } = await supabase
     .from('conferences')
     .select(`
       *,
+      speaker:speakers(*),
       room:rooms(*),
       time_slot:time_slots(*)
     `)
@@ -74,13 +69,13 @@ export async function checkTimeConflict(userId: string, conferenceId: string): P
     return null
   }
 
-  // Récupérer les inscriptions existantes de l'utilisateur pour le même créneau
   const { data: conflictingRegistrations, error: conflictError } = await supabase
     .from('registrations')
     .select(`
       *,
       conference:conferences(
         *,
+        speaker:speakers(*),
         room:rooms(*),
         time_slot:time_slots(*)
       )
@@ -92,7 +87,6 @@ export async function checkTimeConflict(userId: string, conferenceId: string): P
     return null
   }
 
-  // Trouver le conflit avec le même créneau horaire
   const conflict = conflictingRegistrations?.find(reg => 
     reg.conference?.time_slot_id === targetConference.time_slot_id
   )
@@ -108,7 +102,6 @@ export async function checkTimeConflict(userId: string, conferenceId: string): P
   return null
 }
 
-// Récupérer les inscriptions par conférence
 export async function getRegistrationsByConference(conferenceId: string) {
   const { data, error } = await supabase
     .from('registrations')
@@ -122,7 +115,6 @@ export async function getRegistrationsByConference(conferenceId: string) {
   return data || []
 }
 
-// Récupérer les statistiques d'inscription par jour
 export async function getRegistrationsByDay() {
   const { data, error } = await supabase
     .from('registrations')
@@ -135,7 +127,6 @@ export async function getRegistrationsByDay() {
 
   if (error) throw error
 
-  // Grouper par jour
   const byDay = data?.reduce((acc, reg) => {
     const day = reg.conference?.time_slot?.day
     if (day) {
@@ -147,7 +138,6 @@ export async function getRegistrationsByDay() {
   return byDay || {}
 }
 
-// S'inscrire à une conférence
 export async function registerForConference(userId: string, conferenceId: string) {
   const { error, data } = await supabase
     .from('registrations')
@@ -159,7 +149,6 @@ export async function registerForConference(userId: string, conferenceId: string
   return data
 }
 
-// Se désinscrire d'une conférence
 export async function unregisterFromConference(userId: string, conferenceId: string) {
   const { error } = await supabase
     .from('registrations')
@@ -170,13 +159,11 @@ export async function unregisterFromConference(userId: string, conferenceId: str
   return { userId, conferenceId }
 }
 
-// Remplacer une inscription (conflit horaire)
 export async function replaceRegistration(
   userId: string,
   oldConferenceId: string,
   newConferenceId: string
 ) {
-  // Transaction pour supprimer l'ancienne et créer la nouvelle inscription
   const { error: deleteError } = await supabase
     .from('registrations')
     .delete()
@@ -191,7 +178,6 @@ export async function replaceRegistration(
     .single()
 
   if (insertError) {
-    // Rollback - remettre l'ancienne inscription
     await supabase
       .from('registrations')
       .insert([{ user_id: userId, conference_id: oldConferenceId }])

@@ -1,7 +1,17 @@
+export * as SpeakerActions from './speakers'
 export * as ConferenceActions from './conferences'
 export * as RegistrationActions from './registrations'
 export * as StatisticsActions from './statistics'
 export * as AuthActions from './auth'
+
+export {
+  getSpeakers,
+  createSpeaker,
+  updateSpeaker,
+  deleteSpeaker,
+  searchSpeakers
+} from './speakers'
+
 export {
   getConferences,
   createConference,

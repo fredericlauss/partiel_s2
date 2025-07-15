@@ -56,6 +56,7 @@ const OrganizerPage: React.FC = () => {
     conferences,
     rooms,
     timeSlots,
+    speakers,
     loading,
     error,
     createConference,
@@ -395,7 +396,7 @@ const OrganizerPage: React.FC = () => {
                                 </Typography>
                               </Box>
                               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                {confData.conference.speaker_name} • {confData.conference.room?.name}
+                                {confData.conference.speaker?.name || 'Conférencier non défini'} • {confData.conference.room?.name}
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
                                 {confData.conference.time_slot && 
@@ -444,6 +445,7 @@ const OrganizerPage: React.FC = () => {
             conference={editingConference || undefined}
             rooms={rooms}
             timeSlots={timeSlots}
+            speakers={speakers}
             loading={operationLoading}
             onSubmit={handleFormSubmit}
             onCancel={handleCancelForm}
