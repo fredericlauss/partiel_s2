@@ -13,7 +13,13 @@ import {
   DialogContentText,
   DialogActions,
   TextField,
-  Alert
+  Alert,
+  Menu,
+  MenuItem,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
+  Divider
 } from '@mui/material'
 import { 
   Logout as LogoutIcon,
@@ -39,6 +45,8 @@ const Header: React.FC = () => {
   const [confirmationText, setConfirmationText] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const userMenuOpen = Boolean(anchorEl)
 
   const handleSignOut = async () => {
     await signOut()
@@ -46,6 +54,7 @@ const Header: React.FC = () => {
   }
 
   const handleDeleteAccount = () => {
+    setAnchorEl(null) // Fermer le menu
     setDeleteDialogOpen(true)
     setConfirmationText('')
     setDeleteError(null)
@@ -172,64 +181,64 @@ const Header: React.FC = () => {
               )}
             </Box>
             
-            <Box display="flex" alignItems="center" gap={2}>
-              <Box display="flex" alignItems="center" gap={1}>
-                <Avatar sx={{ width: 32, height: 32, bgcolor: getRoleColor() + '.main' }}>
-                  {user?.profile?.first_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
-                </Avatar>
-                <Box display="flex" flexDirection="column" alignItems="flex-start">
-                  <Typography variant="body2" color="inherit">
-                    {user?.profile?.first_name} {user?.profile?.last_name}
-                  </Typography>
-                  <Chip 
-                    icon={getRoleIcon()}
-                    label={getRoleLabel()}
-                    size="small"
-                    color={getRoleColor()}
-                    variant="outlined"
-                    sx={{ 
-                      height: 20, 
-                      fontSize: '0.7rem',
-                      color: 'white',
-                      borderColor: 'rgba(255,255,255,0.5)'
-                    }}
-                  />
+            <Box>
+              <IconButton
+                onClick={(event) => setAnchorEl(event.currentTarget)}
+                sx={{ p: 0, color: 'white' }}
+                aria-controls={userMenuOpen ? 'user-menu' : undefined}
+                aria-haspopup="true"
+                aria-expanded={userMenuOpen ? 'true' : undefined}
+              >
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Avatar sx={{ width: 32, height: 32, bgcolor: getRoleColor() + '.main' }}>
+                    {user?.profile?.first_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
+                  </Avatar>
+                  <Box display="flex" flexDirection="column" alignItems="flex-start">
+                    <Typography variant="body2" color="inherit">
+                      {user?.profile?.first_name} {user?.profile?.last_name}
+                    </Typography>
+                    <Chip 
+                      icon={getRoleIcon()}
+                      label={getRoleLabel()}
+                      size="small"
+                      color={getRoleColor()}
+                      variant="outlined"
+                      sx={{ 
+                        height: 20, 
+                        fontSize: '0.7rem',
+                        color: 'white',
+                        borderColor: 'rgba(255,255,255,0.5)'
+                      }}
+                    />
+                  </Box>
                 </Box>
-              </Box>
+              </IconButton>
 
-              <Button
-                color="inherit"
-                onClick={handleDeleteAccount}
-                startIcon={<DeleteAccountIcon />}
-                variant="outlined"
-                size="small"
-                sx={{ 
-                  borderColor: 'rgba(255,255,255,0.5)',
-                  '&:hover': {
-                    borderColor: 'white',
-                    backgroundColor: 'rgba(255,255,255,0.1)'
-                  }
+              <Menu
+                id="user-menu"
+                anchorEl={anchorEl}
+                open={userMenuOpen}
+                onClose={() => setAnchorEl(null)}
+                MenuListProps={{
+                  'aria-labelledby': 'basic-button',
                 }}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
               >
-                Supprimer mon compte
-              </Button>
-
-              <Button
-                color="inherit"
-                onClick={handleSignOut}
-                startIcon={<LogoutIcon />}
-                variant="outlined"
-                size="small"
-                sx={{ 
-                  borderColor: 'rgba(255,255,255,0.5)',
-                  '&:hover': {
-                    borderColor: 'white',
-                    backgroundColor: 'rgba(255,255,255,0.1)'
-                  }
-                }}
-              >
-                Déconnexion
-              </Button>
+                <MenuItem onClick={handleDeleteAccount}>
+                  <ListItemIcon>
+                    <DeleteAccountIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Supprimer mon compte</ListItemText>
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={() => { setAnchorEl(null); handleSignOut(); }}>
+                  <ListItemIcon>
+                    <LogoutIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Déconnexion</ListItemText>
+                </MenuItem>
+              </Menu>
             </Box>
           </>
         ) : (
