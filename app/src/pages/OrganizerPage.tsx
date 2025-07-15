@@ -26,14 +26,18 @@ import {
   List as ListIcon,
   TrendingUp as TrendingIcon,
   Room as RoomIcon,
-  Star as StarIcon
+  Star as StarIcon,
+  Person as PersonIcon
 } from '@mui/icons-material'
 import { useAuth } from '../hooks/useAuth'
 import { useConferences } from '../hooks/useConferences'
 import { useStatistics } from '../hooks/useStatistics'
+import { useSpeakers } from '../hooks/useSpeakers'
 import ConferenceForm from '../components/conferences/ConferenceForm'
 import ConferenceList from '../components/conferences/ConferenceList'
-import type { Conference, ConferenceCreateInput, ConferenceUpdateInput } from '../lib/supabase'
+import SpeakerForm from '../components/speakers/SpeakerForm'
+import SpeakerList from '../components/speakers/SpeakerList'
+import type { Conference, ConferenceCreateInput, ConferenceUpdateInput, Speaker } from '../lib/supabase'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -67,6 +71,15 @@ const OrganizerPage: React.FC = () => {
   } = useConferences()
 
   const { stats, loading: statsLoading, error: statsError, refresh: refreshStats } = useStatistics()
+  
+  const {
+    speakers: allSpeakers,
+    loading: speakersLoading,
+    loadingError: speakersError,
+    createSpeaker,
+    updateSpeaker,
+    deleteSpeaker
+  } = useSpeakers()
 
   const [activeTab, setActiveTab] = useState(0)
   const [showForm, setShowForm] = useState(false)
@@ -74,6 +87,12 @@ const OrganizerPage: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [conferenceToDelete, setConferenceToDelete] = useState<string | null>(null)
   const [operationLoading, setOperationLoading] = useState(false)
+
+  // Speaker management states
+  const [showSpeakerForm, setShowSpeakerForm] = useState(false)
+  const [editingSpeaker, setEditingSpeaker] = useState<Speaker | null>(null)
+  const [deleteSpeakerDialogOpen, setDeleteSpeakerDialogOpen] = useState(false)
+  const [speakerToDelete, setSpeakerToDelete] = useState<string | null>(null)
 
   const [notification, setNotification] = useState<{
     open: boolean
@@ -89,6 +108,8 @@ const OrganizerPage: React.FC = () => {
     setActiveTab(newValue)
     setShowForm(false)
     setEditingConference(null)
+    setShowSpeakerForm(false)
+    setEditingSpeaker(null)
   }
 
   const handleFormSubmit = async (data: ConferenceCreateInput | ConferenceUpdateInput): Promise<boolean> => {
@@ -173,6 +194,86 @@ const OrganizerPage: React.FC = () => {
     setEditingConference(null)
   }
 
+  // Speaker handlers
+  const handleSpeakerFormSubmit = async (data: { id?: string; name: string; photo?: string; bio?: string }): Promise<boolean> => {
+    setOperationLoading(true)
+    try {
+      let result: { success: boolean; error?: string }
+      let isUpdate = false
+      
+      if ('id' in data && data.id) {
+        result = await updateSpeaker(data as { id: string; name: string; photo?: string; bio?: string })
+        isUpdate = true
+      } else {
+        const { ...createData } = data
+        result = await createSpeaker(createData)
+      }
+
+      if (result.success) {
+        setShowSpeakerForm(false)
+        setEditingSpeaker(null)
+        
+        setNotification({
+          open: true,
+          message: isUpdate ? 'Conférencier modifié avec succès !' : 'Conférencier créé avec succès !',
+          severity: 'success'
+        })
+      } else {
+        setNotification({
+          open: true,
+          message: result.error || (isUpdate ? 'Erreur lors de la modification du conférencier' : 'Erreur lors de la création du conférencier'),
+          severity: 'error'
+        })
+      }
+      
+      return result.success
+    } finally {
+      setOperationLoading(false)
+    }
+  }
+
+  const handleEditSpeaker = (speaker: Speaker) => {
+    setEditingSpeaker(speaker)
+    setShowSpeakerForm(true)
+    setActiveTab(2)
+  }
+
+  const handleDeleteSpeaker = (speakerId: string) => {
+    setSpeakerToDelete(speakerId)
+    setDeleteSpeakerDialogOpen(true)
+  }
+
+  const confirmDeleteSpeaker = async () => {
+    if (!speakerToDelete) return
+
+    setOperationLoading(true)
+    try {
+      const result = await deleteSpeaker(speakerToDelete)
+      if (result.success) {
+        setNotification({
+          open: true,
+          message: 'Conférencier supprimé avec succès !',
+          severity: 'success'
+        })
+      } else {
+        setNotification({
+          open: true,
+          message: result.error || 'Erreur lors de la suppression du conférencier',
+          severity: 'error'
+        })
+      }
+      setDeleteSpeakerDialogOpen(false)
+      setSpeakerToDelete(null)
+    } finally {
+      setOperationLoading(false)
+    }
+  }
+
+  const handleCancelSpeakerForm = () => {
+    setShowSpeakerForm(false)
+    setEditingSpeaker(null)
+  }
+
   const getDayLabel = (day: number) => {
     const dayLabels = { 1: 'Jour 1', 2: 'Jour 2', 3: 'Jour 3' }
     return dayLabels[day as keyof typeof dayLabels] || `Jour ${day}`
@@ -189,9 +290,9 @@ const OrganizerPage: React.FC = () => {
         </Typography>
       </Box>
 
-      {(error || statsError) && (
+      {(error || statsError || speakersError) && (
         <Alert severity="error" sx={{ mb: 3 }}>
-          {error || statsError}
+          {error || statsError || speakersError}
         </Alert>
       )}
 
@@ -210,6 +311,11 @@ const OrganizerPage: React.FC = () => {
           <Tab 
             label="Gestion des conférences" 
             icon={<ListIcon />}
+            iconPosition="start"
+          />
+          <Tab 
+            label="Gestion des conférenciers" 
+            icon={<PersonIcon />}
             iconPosition="start"
           />
         </Tabs>
@@ -463,6 +569,43 @@ const OrganizerPage: React.FC = () => {
         )}
       </TabPanel>
 
+      <TabPanel value={activeTab} index={2}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+          <Typography variant="h5">
+            Gestion des conférenciers
+          </Typography>
+          {!showSpeakerForm && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => {
+                setEditingSpeaker(null)
+                setShowSpeakerForm(true)
+              }}
+            >
+              Nouveau conférencier
+            </Button>
+          )}
+        </Box>
+
+        {showSpeakerForm ? (
+          <SpeakerForm
+            speaker={editingSpeaker || undefined}
+            loading={operationLoading}
+            onSubmit={handleSpeakerFormSubmit}
+            onCancel={handleCancelSpeakerForm}
+          />
+        ) : (
+          <SpeakerList
+            speakers={allSpeakers}
+            loading={speakersLoading}
+            loadingError={speakersError}
+            onEdit={handleEditSpeaker}
+            onDelete={handleDeleteSpeaker}
+          />
+        )}
+      </TabPanel>
+
       {/* Delete confirmation dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>Confirmer la suppression</DialogTitle>
@@ -481,6 +624,32 @@ const OrganizerPage: React.FC = () => {
           </Button>
           <Button 
             onClick={confirmDelete}
+            color="error"
+            disabled={operationLoading}
+          >
+            {operationLoading ? 'Suppression...' : 'Supprimer'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete speaker confirmation dialog */}
+      <Dialog open={deleteSpeakerDialogOpen} onClose={() => setDeleteSpeakerDialogOpen(false)}>
+        <DialogTitle>Confirmer la suppression</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Êtes-vous sûr de vouloir supprimer ce conférencier ? 
+            Cette action est irréversible et le conférencier ne pourra plus être associé à de nouvelles conférences.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setDeleteSpeakerDialogOpen(false)}
+            disabled={operationLoading}
+          >
+            Annuler
+          </Button>
+          <Button 
+            onClick={confirmDeleteSpeaker}
             color="error"
             disabled={operationLoading}
           >
