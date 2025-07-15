@@ -15,10 +15,11 @@ import {
   Delete as DeleteIcon,
   Person as PersonIcon
 } from '@mui/icons-material'
-import type { Speaker } from '../../lib/supabase'
+import type { Speaker, Conference } from '../../lib/supabase'
 
 interface SpeakerListProps {
   speakers: Speaker[]
+  conferences: Conference[]
   loading: boolean
   loadingError: string | null
   onEdit: (speaker: Speaker) => void
@@ -27,11 +28,16 @@ interface SpeakerListProps {
 
 export const SpeakerList: React.FC<SpeakerListProps> = ({
   speakers,
+  conferences,
   loading,
   loadingError,
   onEdit,
   onDelete
 }) => {
+  // Function to check if a speaker is used in any conference
+  const isSpeakerUsed = (speakerId: string): boolean => {
+    return conferences.some(conference => conference.speaker_id === speakerId)
+  }
   if (loading) {
     return (
       <Box textAlign="center" py={4}>
@@ -103,6 +109,14 @@ export const SpeakerList: React.FC<SpeakerListProps> = ({
                       variant="outlined"
                       color="primary"
                     />
+                    {isSpeakerUsed(speaker.id) && (
+                      <Chip
+                        label="Intervient dans des conférences"
+                        size="small"
+                        variant="outlined"
+                        color="warning"
+                      />
+                    )}
                   </Box>
                 </Box>
               </Box>
@@ -118,15 +132,28 @@ export const SpeakerList: React.FC<SpeakerListProps> = ({
                     <EditIcon />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="Supprimer">
-                  <IconButton
-                    color="error"
-                    onClick={() => onDelete(speaker.id)}
-                    size="small"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip>
+                {!isSpeakerUsed(speaker.id) && (
+                  <Tooltip title="Supprimer">
+                    <IconButton
+                      color="error"
+                      onClick={() => onDelete(speaker.id)}
+                      size="small"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                )}
+                {isSpeakerUsed(speaker.id) && (
+                  <Tooltip title="Impossible de supprimer : ce conférencier intervient dans des conférences">
+                    <IconButton
+                      color="default"
+                      disabled
+                      size="small"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                )}
               </Box>
             </Box>
           </CardContent>

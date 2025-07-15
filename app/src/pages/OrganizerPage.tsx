@@ -60,7 +60,6 @@ const OrganizerPage: React.FC = () => {
     conferences,
     rooms,
     timeSlots,
-    speakers,
     loading,
     error,
     createConference,
@@ -551,7 +550,7 @@ const OrganizerPage: React.FC = () => {
             conference={editingConference || undefined}
             rooms={rooms}
             timeSlots={timeSlots}
-            speakers={speakers}
+            speakers={allSpeakers}
             loading={operationLoading}
             onSubmit={handleFormSubmit}
             onCancel={handleCancelForm}
@@ -598,6 +597,7 @@ const OrganizerPage: React.FC = () => {
         ) : (
           <SpeakerList
             speakers={allSpeakers}
+            conferences={conferences}
             loading={speakersLoading}
             loadingError={speakersError}
             onEdit={handleEditSpeaker}
