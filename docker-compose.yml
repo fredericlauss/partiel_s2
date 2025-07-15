@@ -1,0 +1,13 @@
+services:
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      target: production
+    container_name: salon-affaires-app
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    restart: unless-stopped
