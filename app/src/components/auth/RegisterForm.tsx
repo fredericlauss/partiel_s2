@@ -153,9 +153,8 @@ export default function RegisterForm({ onMessage, onSuccess }: RegisterFormProps
         />
       </Box>
 
-      {/* Warning pour la démo */}
       <Alert severity="warning" sx={{ mt: 2, mb: 1 }}>
-        ⚠️ <strong>Mode Démonstration :</strong> Le choix du rôle ne sera pas disponible en production. 
+        <strong>Mode Démonstration :</strong> Le choix du rôle ne sera pas disponible en production. 
         En temps normal, seuls les visiteurs peuvent s'inscrire directement. 
         Les sponsors et organisateurs seront invités à l'application.
       </Alert>
