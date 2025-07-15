@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import type { AuthUser, Profile } from '../lib/supabase'
@@ -9,32 +9,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      if (session?.user) {
-        loadUserProfile(session.user)
-      } else {
-        setLoading(false)
-      }
-    })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session)
-        if (session?.user) {
-          await loadUserProfile(session.user)
-        } else {
-          setUser(null)
-          setLoading(false)
-        }
-      }
-    )
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const loadUserProfile = async (authUser: User) => {
+  const loadUserProfile = useCallback(async (authUser: User) => {
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -65,16 +40,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         })
       }
+      setLoading(false)
     } catch (error) {
       console.error('Erreur lors du chargement du profil:', error)
       setUser({
         id: authUser.id,
         email: authUser.email!
       })
-    } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    // Initialisation de la session
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        setSession(session)
+        if (session?.user) {
+          await loadUserProfile(session.user)
+        } else {
+          setLoading(false)
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation:', error)
+        setLoading(false)
+      }
+    }
+
+    initAuth()
+
+    // Écouter les changements d'état d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session)
+        
+        if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setLoading(false)
+        } else if (session?.user) {
+          loadUserProfile(session.user)
+        } else {
+          setUser(null)
+          setLoading(false)
+        }
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [loadUserProfile])
 
   const signUp = async (email: string, password: string, userData: {
     first_name: string
@@ -128,9 +142,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('Erreur lors de la déconnexion:', error)
+      }
+    } catch (error) {
       console.error('Erreur lors de la déconnexion:', error)
+      // Force le reset local même en cas d'erreur
+      setUser(null)
+      setSession(null)
     }
   }
 
