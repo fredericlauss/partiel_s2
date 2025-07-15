@@ -27,6 +27,11 @@ const Header: React.FC = () => {
   const { user, signOut } = useAuth()
   const { userRole, isLoggedIn, isOrganizer } = usePermissions()
 
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/auth', { replace: true })
+  }
+
   const getRoleIcon = () => {
     switch (userRole) {
       case 'organizer':
@@ -147,7 +152,7 @@ const Header: React.FC = () => {
 
               <Button
                 color="inherit"
-                onClick={signOut}
+                onClick={handleSignOut}
                 startIcon={<LogoutIcon />}
                 variant="outlined"
                 size="small"

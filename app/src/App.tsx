@@ -38,7 +38,7 @@ function AppContent() {
       <Header />
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Routes>
-        <Route 
+          <Route 
             path="/" 
             element={
               user ? <VisitorPage /> : <Navigate to="/auth" replace />
@@ -47,15 +47,15 @@ function AppContent() {
 
           <Route 
             path="/auth" 
-            element={
-              user ? <Navigate to="/" replace /> : <AuthPage />
-            } 
+            element={<AuthPage />} 
           />
 
           <Route 
             path="/my-program" 
             element={
+              <ProtectedRoute requireAuth={true}>
                 <PersonalSchedule />
+              </ProtectedRoute>
             } 
           />
           

@@ -1,12 +1,12 @@
 import React from 'react'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { Box, Typography, Button } from '@mui/material'
-import { Navigate } from 'react-router-dom'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useAuth } from '../../hooks/useAuth'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  requiredRole?: 'organizer' | 'visitor' | 'sponsor'
+  requiredRole?: string
   requireAuth?: boolean
   fallback?: React.ReactNode
 }
@@ -19,6 +19,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { isLoggedIn, userRole } = usePermissions()
   const { signOut } = useAuth()
+  const navigate = useNavigate()
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/auth', { replace: true })
+  }
 
   if (requireAuth && !isLoggedIn) {
     return <Navigate to="/auth" replace />
@@ -38,7 +44,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         </Typography>
         <Button 
           variant="outlined" 
-          onClick={signOut}
+          onClick={handleSignOut}
           sx={{ mt: 2 }}
         >
           Se déconnecter
