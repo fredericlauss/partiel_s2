@@ -106,7 +106,7 @@ ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE time_slots ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Anyone can view rooms" ON rooms FOR SELECT USING (true);
-CREATE POLICY "Anyone can view time slots" ON rooms FOR SELECT USING (true);
+CREATE POLICY "Anyone can view time slots" ON time_slots FOR SELECT USING (true);
 
 CREATE POLICY "Only organizers can manage rooms" ON rooms
     FOR ALL USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'organizer');
