@@ -50,7 +50,6 @@ export const ConferenceFilters: React.FC<ConferenceFiltersProps> = ({
   onSearchChange,
   onClearFilters
 }) => {
-  // Get unique speakers from conferences
   const speakers = React.useMemo(() => {
     const uniqueSpeakers = Array.from(
       new Set(conferences.map(conf => conf.speaker?.name).filter(Boolean))
@@ -58,7 +57,6 @@ export const ConferenceFilters: React.FC<ConferenceFiltersProps> = ({
     return uniqueSpeakers
   }, [conferences])
 
-  // Check if any filters are active
   const hasActiveFilters = selectedDay !== null || selectedRoom !== null || selectedSpeaker !== '' || searchTerm !== ''
 
   const handleDayTabChange = (_: React.SyntheticEvent, newValue: number | null) => {
@@ -68,7 +66,6 @@ export const ConferenceFilters: React.FC<ConferenceFiltersProps> = ({
   return (
     <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
       <Box display="flex" flexDirection="column" gap={2}>
-        {/* Day filter - Tabs */}
         <Box>
           <Box display="flex" alignItems="center" gap={1} sx={{ mb: 1 }}>
             <DayIcon color="primary" />
@@ -89,13 +86,11 @@ export const ConferenceFilters: React.FC<ConferenceFiltersProps> = ({
           </Tabs>
         </Box>
 
-        {/* Room and Speaker filters - Side by side */}
         <Box 
           display="flex" 
           gap={2} 
           flexDirection={{ xs: 'column', sm: 'row' }}
         >
-          {/* Room filter */}
           <FormControl fullWidth>
             <InputLabel>
               <Box display="flex" alignItems="center" gap={1}>
@@ -119,7 +114,6 @@ export const ConferenceFilters: React.FC<ConferenceFiltersProps> = ({
             </Select>
           </FormControl>
 
-          {/* Speaker filter */}
           <FormControl fullWidth>
             <InputLabel>
               <Box display="flex" alignItems="center" gap={1}>
@@ -144,7 +138,6 @@ export const ConferenceFilters: React.FC<ConferenceFiltersProps> = ({
           </FormControl>
         </Box>
 
-        {/* Search filter */}
         <TextField
           fullWidth
           placeholder="Rechercher dans les titres et descriptions..."
@@ -168,7 +161,6 @@ export const ConferenceFilters: React.FC<ConferenceFiltersProps> = ({
           }}
         />
 
-        {/* Active filters summary */}
         {hasActiveFilters && (
           <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
             <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>

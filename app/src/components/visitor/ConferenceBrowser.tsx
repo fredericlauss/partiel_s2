@@ -233,7 +233,6 @@ export const ConferenceBrowser: React.FC = () => {
     )
   }
 
-  // Error state
   if (conferencesError) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -247,7 +246,7 @@ export const ConferenceBrowser: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" gutterBottom align="center">
-        🎪 Parcourir les Conférences
+        Parcourir les Conférences
       </Typography>
       
       <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 4 }}>
@@ -269,12 +268,10 @@ export const ConferenceBrowser: React.FC = () => {
         onClearFilters={clearAllFilters}
       />
 
-      {/* Results count */}
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         {filteredConferences.length} conférence{filteredConferences.length !== 1 ? 's' : ''} trouvée{filteredConferences.length !== 1 ? 's' : ''}
       </Typography>
 
-      {/* Conferences grid */}
       {filteredConferences.length === 0 ? (
         <Alert severity="info" sx={{ mt: 2 }}>
           Aucune conférence ne correspond à vos critères de recherche.
@@ -301,7 +298,6 @@ export const ConferenceBrowser: React.FC = () => {
         </Box>
       )}
 
-      {/* Registration Dialog */}
       <RegistrationDialog
         open={registrationDialog.open}
         conference={registrationDialog.conference}
@@ -311,7 +307,6 @@ export const ConferenceBrowser: React.FC = () => {
         onCancel={() => setRegistrationDialog({ open: false, conference: null, action: 'register' })}
       />
 
-      {/* Conflict Dialog */}
       <ConflictDialog
         open={conflictDialog.open}
         conflict={conflictDialog.conflict}
@@ -320,7 +315,6 @@ export const ConferenceBrowser: React.FC = () => {
         onCancel={() => setConflictDialog({ open: false, conflict: null, newConferenceId: null })}
       />
 
-      {/* Notification Snackbar */}
       <Snackbar
         open={notification.open}
         autoHideDuration={4000}

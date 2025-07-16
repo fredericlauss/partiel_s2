@@ -58,7 +58,6 @@ export const ConflictDialog: React.FC<ConflictDialogProps> = ({
   }> = ({ conference, type }) => (
     <Card variant="outlined" sx={{ width: '100%' }}>
       <CardContent>
-        {/* Header avec statut */}
         <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
           <Typography variant="subtitle1" fontWeight="bold">
             {type === 'current' ? 'Inscription actuelle' : 'Nouvelle conférence'}
@@ -73,12 +72,10 @@ export const ConflictDialog: React.FC<ConflictDialogProps> = ({
           )}
         </Box>
         
-        {/* Titre */}
         <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
           {conference.title}
         </Typography>
         
-        {/* Description */}
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {conference.description.length > 120 
             ? `${conference.description.substring(0, 120)}...`
@@ -86,7 +83,6 @@ export const ConflictDialog: React.FC<ConflictDialogProps> = ({
           }
         </Typography>
 
-        {/* Chips temps et salle */}
         <Box display="flex" gap={1} flexWrap="wrap" sx={{ mb: 2 }}>
           <Chip
             icon={<TimeIcon />}
@@ -104,7 +100,6 @@ export const ConflictDialog: React.FC<ConflictDialogProps> = ({
           />
         </Box>
 
-        {/* Conférencier */}
         <Box display="flex" alignItems="center" gap={1}>
           <Avatar
             src={conference.speaker?.photo}

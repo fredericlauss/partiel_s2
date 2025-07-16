@@ -171,7 +171,6 @@ export const PersonalSchedule: React.FC = () => {
         <CardContent>
           <Box display="flex" justifyContent="space-between" alignItems="start">
             <Box flex={1} sx={{ mr: 2 }}>
-              {/* Time */}
               <Box display="flex" alignItems="center" gap={1} sx={{ mb: 1 }}>
                 <TimeIcon color="primary" fontSize="small" />
                 <Typography variant="body2" fontWeight="medium" color="primary">
@@ -179,12 +178,10 @@ export const PersonalSchedule: React.FC = () => {
                 </Typography>
               </Box>
 
-              {/* Title */}
               <Typography variant="h6" gutterBottom>
                 {conference.title}
               </Typography>
 
-              {/* Room */}
               <Box display="flex" alignItems="center" gap={1} sx={{ mb: 2 }}>
                 <RoomIcon color="secondary" fontSize="small" />
                 <Chip
@@ -195,7 +192,6 @@ export const PersonalSchedule: React.FC = () => {
                 />
               </Box>
 
-              {/* Speaker */}
               <Box display="flex" alignItems="center" gap={1} sx={{ mb: 2 }}>
                 <Avatar
                   src={conference.speaker?.photo}
@@ -208,13 +204,11 @@ export const PersonalSchedule: React.FC = () => {
                 </Typography>
               </Box>
 
-              {/* Description */}
               <Typography variant="body2" color="text.secondary">
                 {conference.description}
               </Typography>
             </Box>
 
-            {/* Unregister button */}
             <Button
               variant="outlined"
               color="error"
@@ -281,7 +275,7 @@ export const PersonalSchedule: React.FC = () => {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box textAlign="center" sx={{ mb: 4 }}>
         <Typography variant="h4" gutterBottom>
-          📋 Mon Programme Personnel
+          Mon Programme Personnel
         </Typography>
         <Typography variant="body1" color="text.secondary">
           Voici les conférences auxquelles vous êtes inscrit
@@ -302,7 +296,6 @@ export const PersonalSchedule: React.FC = () => {
         </Alert>
       ) : (
         <>
-          {/* Day tabs */}
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
             <Tabs
               value={currentTab}
@@ -315,7 +308,6 @@ export const PersonalSchedule: React.FC = () => {
             </Tabs>
           </Box>
 
-          {/* Tab panels */}
           <TabPanel value={currentTab} index={0}>
             <DaySchedule day={1} />
           </TabPanel>
@@ -328,7 +320,6 @@ export const PersonalSchedule: React.FC = () => {
         </>
       )}
 
-      {/* Unregistration Dialog */}
       <RegistrationDialog
         open={unregisterDialog.open}
         conference={unregisterDialog.conference}
@@ -338,7 +329,6 @@ export const PersonalSchedule: React.FC = () => {
         onCancel={() => setUnregisterDialog({ open: false, conference: null })}
       />
 
-      {/* Notification Snackbar */}
       <Snackbar
         open={notification.open}
         autoHideDuration={4000}

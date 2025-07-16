@@ -127,7 +127,7 @@ const Header: React.FC = () => {
     <AppBar position="sticky" elevation={1}>
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          🎪 Salon d'Affaires
+          Salon d'Affaires
         </Typography>
         
         {isLoggedIn ? (

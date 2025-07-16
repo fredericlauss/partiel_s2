@@ -27,7 +27,6 @@ export default function AuthPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  // Redirection automatique après connexion
   useEffect(() => {
     if (user) {
       navigate('/', { replace: true })

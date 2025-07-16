@@ -84,12 +84,10 @@ export const ConferenceCard: React.FC<ConferenceCardProps> = ({
       )}
 
       <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* Title */}
         <Typography variant="h6" gutterBottom>
           {conference.title}
         </Typography>
 
-        {/* Description */}
         <Typography 
           variant="body2" 
           color="text.secondary" 
@@ -101,7 +99,6 @@ export const ConferenceCard: React.FC<ConferenceCardProps> = ({
           }
         </Typography>
 
-        {/* Time and Room chips */}
         <Box display="flex" gap={1} flexWrap="wrap" sx={{ mb: 2 }}>
           <Chip
             icon={<TimeIcon />}
@@ -119,7 +116,6 @@ export const ConferenceCard: React.FC<ConferenceCardProps> = ({
           />
         </Box>
 
-        {/* Speaker info */}
         <Box display="flex" alignItems="center" gap={1} sx={{ mb: 3 }}>
           <Avatar
             src={conference.speaker?.photo}

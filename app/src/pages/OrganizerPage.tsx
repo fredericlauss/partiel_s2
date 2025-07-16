@@ -16,7 +16,8 @@ import {
   CircularProgress,
   LinearProgress,
   Chip,
-  Snackbar
+  Snackbar,
+  Container
 } from '@mui/material'
 import { 
   Event as EventIcon,
@@ -279,14 +280,14 @@ const OrganizerPage: React.FC = () => {
 
   return (
     <Box>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Typography variant="h4" gutterBottom align="center">
           Dashboard Organisateur
         </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
+        <Typography variant="subtitle1" color="text.secondary" gutterBottom align="center">
           Bienvenue, {user?.profile?.first_name} {user?.profile?.last_name}
         </Typography>
-      </Box>
+      </Container>
 
       {(error || statsError || speakersError) && (
         <Alert severity="error" sx={{ mb: 3 }}>
