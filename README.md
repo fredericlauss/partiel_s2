@@ -40,7 +40,7 @@ docker compose up
 ```
 ➡️ Accès : http://localhost:8080
 
-## 📱 Utilisation
+## Utilisation
 
 ### Comptes de test
 - **Organisateur** : admin@salon.com / #motdepasse!123
