@@ -46,13 +46,17 @@ export async function signUp(
 ) {
   const { data, error: authError } = await supabase.auth.signUp({
     email,
-    password
+    password,
+    options: {
+      emailRedirectTo: undefined, 
+    }
   })
 
   if (authError || !data.user) {
     return { error: authError }
   }
 
+  // Créer le profil utilisateur AVANT de déconnecter
   const { error: profileError } = await supabase
     .rpc('create_user_profile', {
       user_id: data.user.id,
@@ -66,6 +70,16 @@ export async function signUp(
   if (profileError) {
     console.error('Erreur de création de profil:', profileError)
     return { error: new Error('Erreur lors de la création du profil') }
+  }
+
+  await supabase.auth.signOut()
+  
+  await new Promise(resolve => setTimeout(resolve, 1000))
+  
+  const { data: sessionCheck } = await supabase.auth.getSession()
+  if (sessionCheck.session) {
+    console.log('Forçage déconnexion supplémentaire...')
+    await supabase.auth.signOut()
   }
 
   return { error: null }
