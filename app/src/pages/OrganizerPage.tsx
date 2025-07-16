@@ -193,7 +193,6 @@ const OrganizerPage: React.FC = () => {
     setEditingConference(null)
   }
 
-  // Speaker handlers
   const handleSpeakerFormSubmit = async (data: { id?: string; name: string; photo?: string; bio?: string }): Promise<boolean> => {
     setOperationLoading(true)
     try {
@@ -282,7 +281,7 @@ const OrganizerPage: React.FC = () => {
     <Box>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" gutterBottom>
-          📊 Dashboard Organisateur
+          Dashboard Organisateur
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
           Bienvenue, {user?.profile?.first_name} {user?.profile?.last_name}
@@ -330,10 +329,9 @@ const OrganizerPage: React.FC = () => {
           </Box>
         ) : (
           <>
-            {/* Statistiques principales */}
             <Box 
               display="grid" 
-              gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr 1fr 1fr" }}
+              gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr 1fr" }}
               gap={3}
               sx={{ mb: 4 }}
             >
@@ -369,21 +367,7 @@ const OrganizerPage: React.FC = () => {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent>
-                  <Box display="flex" alignItems="center" justifyContent="space-between">
-                    <Box>
-                      <Typography color="text.secondary" gutterBottom>
-                        Taux d'occupation
-                      </Typography>
-                      <Typography variant="h4">
-                        {stats?.overallUtilizationRate || 0}%
-                      </Typography>
-                    </Box>
-                    <AnalyticsIcon color="primary" fontSize="large" />
-                  </Box>
-                </CardContent>
-              </Card>
+
 
               <Card>
                 <CardContent>
@@ -402,11 +386,10 @@ const OrganizerPage: React.FC = () => {
               </Card>
             </Box>
 
-            {/* Répartition par jour */}
             <Card sx={{ mb: 4 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  📅 Répartition des conférences par jour
+                  Répartition des conférences par jour
                 </Typography>
                 <Divider sx={{ my: 2 }} />
                 <Box display="flex" flexDirection="column" gap={2}>
@@ -433,11 +416,10 @@ const OrganizerPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Utilisation des salles */}
             <Card sx={{ mb: 4 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  🏢 Taux d'utilisation des salles
+                  Utilisation des salles par jour
                 </Typography>
                 <Divider sx={{ my: 2 }} />
                 <Box 
@@ -448,24 +430,42 @@ const OrganizerPage: React.FC = () => {
                   {stats?.roomUtilization.map((roomData) => (
                     <Card key={roomData.room.id} variant="outlined">
                       <CardContent sx={{ py: 2 }}>
-                        <Box display="flex" alignItems="center" gap={1} sx={{ mb: 1 }}>
+                        <Box display="flex" alignItems="center" gap={1} sx={{ mb: 2 }}>
                           <RoomIcon fontSize="small" color="secondary" />
                           <Typography variant="subtitle2" fontWeight="medium">
                             {roomData.room.name}
                           </Typography>
                         </Box>
-                        <Typography variant="h5" color="primary" gutterBottom>
-                          {roomData.utilizationRate}%
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {roomData.conferenceCount} conférence{roomData.conferenceCount !== 1 ? 's' : ''}
-                        </Typography>
-                        <LinearProgress 
-                          variant="determinate" 
-                          value={roomData.utilizationRate}
-                          sx={{ mt: 1, height: 4, borderRadius: 2 }}
-                          color={roomData.utilizationRate > 75 ? 'warning' : 'primary'}
-                        />
+                        
+
+
+                        <Box display="flex" flexDirection="column" gap={1.5}>
+                          {roomData.utilizationByDay.map((dayData) => (
+                            <Box key={dayData.day}>
+                              <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                                <Typography variant="caption" fontWeight="medium">
+                                  {getDayLabel(dayData.day)}
+                                </Typography>
+                                <Typography variant="caption" color="primary" fontWeight="medium">
+                                  {dayData.score}/10
+                                </Typography>
+                              </Box>
+                              <LinearProgress 
+                                variant="determinate" 
+                                value={(dayData.score / 10) * 100}
+                                sx={{ 
+                                  height: 6, 
+                                  borderRadius: 3,
+                                  backgroundColor: 'rgba(0,0,0,0.1)' 
+                                }}
+                                color={
+                                  dayData.score >= 8 ? 'warning' : 
+                                  dayData.score >= 5 ? 'primary' : 'secondary'
+                                }
+                              />
+                            </Box>
+                          ))}
+                        </Box>
                       </CardContent>
                     </Card>
                   ))}
@@ -473,11 +473,10 @@ const OrganizerPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Conférences les plus populaires */}
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  ⭐ Conférences les plus populaires
+                  Conférences les plus populaires
                 </Typography>
                 <Divider sx={{ my: 2 }} />
                 {stats?.popularConferences.length === 0 ? (
@@ -606,7 +605,6 @@ const OrganizerPage: React.FC = () => {
         )}
       </TabPanel>
 
-      {/* Delete confirmation dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>Confirmer la suppression</DialogTitle>
         <DialogContent>
@@ -632,7 +630,6 @@ const OrganizerPage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Delete speaker confirmation dialog */}
       <Dialog open={deleteSpeakerDialogOpen} onClose={() => setDeleteSpeakerDialogOpen(false)}>
         <DialogTitle>Confirmer la suppression</DialogTitle>
         <DialogContent>
